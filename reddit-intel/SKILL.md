@@ -1,7 +1,7 @@
 ---
 name: reddit-intel
 description: "Use when analyzing Reddit subreddits or redditors: pulse reports, persona synthesis, or synthetic datasets."
-version: 1.3.0
+version: 1.4.0
 author: Hermes Agent
 license: MIT
 metadata:

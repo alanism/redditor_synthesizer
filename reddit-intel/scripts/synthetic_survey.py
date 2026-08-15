@@ -3,7 +3,7 @@
 synthetic_survey.py — Pipeline 3: synthetic survey simulation on top of dossiers.
 
 Given a personas.jsonl (from build_dataset.py), simulate how each persona would
-answer a survey about UCC Hermes / Thrice Great — usefulness for parents involved
+answer any product/concept survey (instrument-driven, subreddit-agnostic) — usefulness for parents involved
 in their kids' education.
 
 Survey is grounded in UCC_Hermes_SOP_Playbook_v6.md (v6.0):
@@ -62,11 +62,11 @@ SURVEY_INSTRUMENT = {
     ]
 }
 
-SURVEY_SYSTEM_PROMPT = """You are a survey simulator. Given a Reddit persona's communication style and worldview (engine, Big Five, anchors), simulate how THEY would answer a survey about UCC Hermes — a private, file-first learning OS described in the system.
+SURVEY_SYSTEM_PROMPT = """You are a survey simulator. Given a Reddit persona's communication style and worldview (engine, Big Five, anchors), simulate how THEY would answer the survey described in SURVEY INSTRUMENT.
 
 Rules:
 - Stay in character. Use the persona's directness, warmth, skepticism, and vocabulary.
-- Likert/NPS: return integers in range. Distribution should reflect the persona's actual values (e.g., a skeptical, control-oriented parent scores file-first higher but managed service lower).
+- Likert/NPS: return integers in range. Distribution should reflect the persona's actual values — use their anchors, quotes, and Big Five to calibrate optimism vs skepticism.
 - Q9 single_choice: return exactly one option string verbatim.
 - Q10 max_3: return 1-3 option strings verbatim.
 - Q11/Q12 open: 1-2 sentences, ≤280 chars, in the persona's voice, with a verbatim quote anchor if possible. Be specific — no generic filler.
@@ -150,6 +150,16 @@ def heuristic_simulate(rubric: dict) -> dict:
     random.seed(hash(rubric.get("author","")) % 100000)
     def likert(base=4):
         return max(1, min(7, base + random.randint(-1,1)))
+    def _first_choice(qid):
+        for qq in SURVEY_INSTRUMENT.get("questions", []):
+            if qq.get("id")==qid and qq.get("options"):
+                return qq["options"][0]
+        return "Heuristic choice"
+    def _first_max3(qid):
+        for qq in SURVEY_INSTRUMENT.get("questions", []):
+            if qq.get("id")==qid and qq.get("options"):
+                return qq["options"][:2]
+        return ["Heuristic placeholder"]
     return {
         "Q1": {"score": likert(5), "why": "heuristic — no LLM key"},
         "Q2": {"score": likert(5), "why": "heuristic"},
@@ -159,12 +169,13 @@ def heuristic_simulate(rubric: dict) -> dict:
         "Q6": {"score": likert(5), "why": "heuristic"},
         "Q7": {"score": likert(4), "why": "heuristic"},
         "Q8": {"score": random.randint(5,8), "why": "heuristic"},
-        "Q9": {"choice": "Journey B — Managed LearningOps (UCC provisions/maintains my VPS/Discord/fleet)", "why": "heuristic default"},
-        "Q10": {"choices": ["Weekly plan + workload estimate", "Learning receipts / evidence coverage map", "File-first ownership / data stays on my VPS"], "why": "heuristic"},
+        "Q9": {"choice": _first_choice("Q9"), "why": "heuristic default"},
+        "Q10": {"choices": _first_max3("Q10"), "why": "heuristic"},
         "Q11": {"text": "Heuristic placeholder — add DEEPSEEK_API_KEY for persona-grounded open text.", "why": "heuristic"},
         "Q12": {"text": "Heuristic placeholder — add key for grounded blocker.", "why": "heuristic"},
         "_heuristic": True,
     }
+
 
 def aggregate(responses: list) -> dict:
     import statistics
@@ -200,11 +211,100 @@ def aggregate(responses: list) -> dict:
     heuristic_count = sum(1 for r in responses if r.get("_heuristic") or r.get("_fallback"))
     return {"likerts": {k: stats(v) for k,v in likerts.items()}, "nps": nps, "journeys": journey_counts, "top3": dict(sorted(top3_counts.items(), key=lambda x: x[1], reverse=True)), "n": len(responses), "heuristic_count": heuristic_count}
 
-def render_report(subreddit: str, population: int, responses: list, aggregates: dict, instrument: dict) -> str:
+
+# ── Subreddit-agnostic report helpers ─────────────────────────────────────
+
+SYNTHETIC_WARNING = "Synthetic responses are simulations of likely opinions and language patterns. They are not responses from these Redditors and should not be treated as population estimates."
+
+def _derive_segments(responses: list) -> dict:
+    """Group responses into cohorts by Engine signature for audience composition / segment comparison."""
+    buckets: dict = {}
+    for r in responses:
+        eng = (r.get("_rubric", {}).get("engine") or {})
+        c = eng.get("C")
+        f = eng.get("F")
+        # simple deterministic 3-way split: analyst / pragmatist / skeptic — derived from C and F
+        try:
+            cs = float(c) if c is not None else 2.5
+            fs = float(f) if f is not None else 2.5
+        except: cs, fs = 2.5, 2.5
+        if cs >= 4 and fs >= 3.5:
+            key = "High-Context Analysts"
+        elif cs >= 3.5:
+            key = "Pragmatists"
+        else:
+            key = "Skeptics / Low-Context"
+        buckets.setdefault(key, []).append(r)
+    # merge tiny buckets (<2) into Pragmatists for stability
+    if len(buckets) > 1:
+        tiny = [k for k,v in list(buckets.items()) if len(v) < 2]
+        for k in tiny:
+            if k != "Pragmatists":
+                buckets.setdefault("Pragmatists", []).extend(buckets.pop(k))
+    return buckets
+
+def _top_choice_per_bucket(bucket_responses: list, qid: str, field: str = "choice"):
+    from collections import Counter
+    vals = []
+    for r in bucket_responses:
+        v = (r.get(qid) or {}).get(field)
+        if isinstance(v, list):
+            vals.extend([x for x in v if x])
+        elif v:
+            vals.append(v)
+        elif qid == "Q10":
+            vals.extend([x for x in (r.get(qid) or {}).get("choices", []) if x])
+    if not vals: return "—"
+    c = Counter(vals)
+    return c.most_common(1)[0][0]
+
+def _segment_stats(responses: list, segments: dict) -> list:
+    out = []
+    for name, bucket in segments.items():
+        n = len(bucket)
+        def mean_for(q):
+            vals = [int((x.get(q) or {}).get("score", 0)) for x in bucket if (x.get(q) or {}).get("score") is not None]
+            return round(sum(vals)/len(vals),2) if vals else 0
+        q1 = mean_for("Q1")
+        q7 = mean_for("Q7") if any(x.get("Q7") for x in bucket) else mean_for("Q3")
+        # motivation / objection from open whys
+        mot = _top_choice_per_bucket(bucket, "Q9") if any(x.get("Q9") for x in bucket) else "—"
+        # most frequent Q10 choice in bucket as proxy for preferred framing / proof
+        proof = _top_choice_per_bucket(bucket, "Q10", "choices")
+        # blocker: most common first words of Q12
+        blockers = [(x.get("Q12") or {}).get("text","")[:60] for x in bucket if (x.get("Q12") or {}).get("text")]
+        blocker = blockers[0][:50] + "…" if blockers else "—"
+        out.append({"name": name, "n": n, "q1": q1, "q7": q7, "motivation": mot[:80], "objection": blocker, "proof": proof[:80]})
+    return sorted(out, key=lambda x: x["q1"], reverse=True)
+
+def _barrier_themes(responses: list) -> list:
+    from collections import Counter
+    import re
+    words = []
+    for r in responses:
+        txt = ((r.get("Q12") or {}).get("text","") + " " + (r.get("Q6") or {}).get("text","") + " " + (r.get("Q12") or {}).get("why","")).lower()
+        # simple keyword buckets
+        for kw in ["trust","hallucin","price","pricing","cost","setup","onboarding","time","privacy","control","complex","learning curve","not useful","accuracy","wrong","disappoint","integration","standalone","hermes","evidence","source","manual"]:
+            if kw in txt:
+                words.append(kw if kw not in ("hermes","evidence") else "trust/evidence")
+    c = Counter(words)
+    return c.most_common(8)
+
+def _value_ranking(instrument: dict, aggregates: dict) -> list:
+    order = []
+    for q in instrument.get("questions", []):
+        qid = q["id"]
+        if qid in aggregates.get("likerts", {}):
+            order.append((q.get("prompt","")[:70], aggregates["likerts"][qid]["mean"], qid))
+    return sorted(order, key=lambda x: x[1], reverse=True)
+
+def render_report(subreddit: str, population: int, responses: list, aggregates: dict, instrument: dict, meta=None) -> str:
+    meta = meta or {}
     esc = lambda s: htmlmod.escape(s or "", quote=False)
     now = datetime.now(timezone.utc).strftime("%d %b %Y · %H:%M UTC")
+    run_id = meta.get("run_id") or datetime.now(timezone.utc).strftime("%Y%m%dT%H%MZ")
     n = len(responses)
-    import math
+    import math, json as _json
     def margin_for(n_, N, z=1.96, p=0.5):
         if n_ >= N: return 0
         if n_ <= 0: return 0
@@ -213,30 +313,103 @@ def render_report(subreddit: str, population: int, responses: list, aggregates: 
         return z * math.sqrt(var)
     pilot_margin = margin_for(n, population) * 100
     def bar(pct, color="#ffc500"):
+        pct = max(0, min(100, float(pct)))
         return f'<div style="height:10px;background:#eee;border-radius:9999px;overflow:hidden"><div style="width:{pct}%;height:100%;background:{color}"></div></div>'
     def chip(t, bg="#ffc500"):
         return f'<span style="display:inline-block;font:700 10px/1 Inter,system-ui,sans-serif;letter-spacing:.06em;text-transform:uppercase;padding:4px 8px;border-radius:9999px;background:{bg};border:1px solid rgba(0,0,0,.08)">{esc(t)}</span>'
-    likert_questions = [q for q in instrument["questions"] if q["id"] in aggregates["likerts"]]
+    # instrument-agnostic Q discovery
+    q_by_id = {q["id"]: q for q in instrument.get("questions", [])}
+    likert_qs = [q for q in instrument.get("questions", []) if q.get("id") in aggregates.get("likerts", {})]
+    # derive segments and value ranking generically
+    segments = _derive_segments(responses)
+    seg_stats = _segment_stats(responses, segments) if segments else []
+    ranking = _value_ranking(instrument, aggregates)
+    barriers = _barrier_themes(responses)
+    # strongest positive / barrier (generic: top likert mean, lowest / most common Q12 theme)
+    strongest_q = max(likert_qs, key=lambda q: aggregates["likerts"][q["id"]]["mean"]) if likert_qs else None
+    weakest_q = min(likert_qs, key=lambda q: aggregates["likerts"][q["id"]]["mean"]) if likert_qs else None
+    barrier_label = barriers[0][0] if barriers else "see Q12 open text"
+    top_segment = seg_stats[0]["name"] if seg_stats else "—"
+    # recommended next experiment: generic, tied to top barrier
+    next_exp_map = {"trust": "Blind trust / source-verification test with real users", "price": "Willingness-to-pay / pricing ladder test", "setup": "First-use onboarding burden test", "time": "Time-to-value / setup friction test"}
+    next_exp = next_exp_map.get(barrier_label.split("/")[0], "Message comparison: architecture-led vs outcome-led explanation")
+    # --- build HTML fragments ---
+    # 0) likert cards
     likert_rows = ""
-    for q in likert_questions:
+    for q in likert_qs:
         qid = q["id"]
         st = aggregates["likerts"][qid]
-        likert_rows += f'<div style="border:1px solid #d9d9d9;background:#fff;border-radius:12px;padding:14px"><div style="font:700 11px/1 Inter,sans-serif;letter-spacing:.06em;text-transform:uppercase;color:#6e6e6e">{esc(qid)} · {esc(q["prompt"][:90])}</div><div style="display:flex;align-items:baseline;gap:10px;margin-top:8px"><b style="font-size:28px;letter-spacing:-.02em">{st["mean"]}</b><span style="font:500 11px/1 Inter,sans-serif;color:#6e6e6e">mean · median {st["median"]} · top-2-box {st["top2box"]}%</span></div>{bar(st["top2box"])}<div style="font:500 11px/1.4 Inter,sans-serif;color:#6e6e6e;margin-top:6px">n={st["n"]} · dist {json.dumps(st["dist"])}</div></div>'
-    journey_rows = "".join(f"<div style='display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #eee'><span style='font:500 13px/1 Inter,sans-serif'>{esc(k)}</span><b>{v}</b></div>" for k,v in aggregates["journeys"].items())
-    top3_rows = "".join(f"<div style='display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #eee'><span style='font:500 13px/1 Inter,sans-serif'>{esc(k)}</span><span style='font:700 13px/1 Inter,sans-serif'>{v} · {round(v/n*100,1)}%</span></div>" for k,v in aggregates["top3"].items())
+        _dist = st.get("dist", {})
+        likert_rows += f'<div style="border:1px solid #d9d9d9;background:#fff;border-radius:12px;padding:14px"><div style="font:700 11px/1 Inter,sans-serif;letter-spacing:.06em;text-transform:uppercase;color:#6e6e6e">{esc(qid)} · {esc(q.get("prompt","")[:90])}</div><div style="display:flex;align-items:baseline;gap:10px;margin-top:8px"><b style="font-size:28px;letter-spacing:-.02em">{st.get("mean",0)}</b><span style="font:500 11px/1 Inter,sans-serif;color:#6e6e6e">mean · median {st.get("median",0)} · top-2-box {st.get("top2box",0)}%</span></div>{bar(st.get("top2box",0))}<div style="font:500 11px/1.4 Inter,sans-serif;color:#6e6e6e;margin-top:6px">n={st.get("n",0)} · dist {_json.dumps(_dist)}</div></div>'
+    # 1) value ranking bars
+    ranking_rows = "".join(f'<div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid #eee"><span style="flex:1;font:500 12px/1.3 Inter,sans-serif">{esc(lbl[:64])}</span><span style="font:700 13px/1 Inter,sans-serif;min-width:44px;text-align:right">{m:.1f}</span><span style="width:90px">{bar((m-1)/6*100, "#0075de" if i==0 else "#62aef0")}</span></div>' for i,(lbl,m,_qid) in enumerate(ranking))
+    # 2) funnel (Q1 relevance -> usefulness -> try -> recommend -> barrier inverse)
+    funnel = []
+    for qid, label, color in [("Q1","Usefulness","#ffc500"),("Q7","Try","#62aef0"),("Q8","Recommend (NPS)","#0075de")]:
+        vals = []
+        if qid == "Q8":
+            vals = [int((x.get("Q8") or {}).get("score", 0)) for x in responses if (x.get("Q8") or {}).get("score") is not None]
+            pct = sum(1 for v in vals if v >= 7)/len(vals)*100 if vals else 0
+        else:
+            vals = [int((x.get(qid) or {}).get("score", 0)) for x in responses if (x.get(qid) or {}).get("score") is not None]
+            pct = sum(1 for v in vals if v >= 5)/len(vals)*100 if vals else 0
+        funnel.append((label, pct, color))
+    funnel_rows = "".join(f'<div style="display:flex;align-items:center;gap:10px;padding:6px 0"><span style="min-width:140px;font:700 11px/1 Inter,sans-serif;letter-spacing:.05em;text-transform:uppercase;color:#6e6e6e">{esc(lbl)}</span><span style="flex:1">{bar(p, c)}</span><span style="min-width:44px;font:700 12px/1 Inter,sans-serif;text-align:right">{p:.0f}%</span></div>' for lbl,p,c in funnel)
+    # 3) barrier chart
+    max_b = max((v for _,v in barriers), default=1)
+    barrier_rows = "".join(f'<div style="display:flex;align-items:center;gap:10px;padding:5px 0;border-bottom:1px solid #f0ece6"><span style="min-width:140px;font:500 12px/1 Inter,sans-serif">{esc(k)}</span><span style="flex:1">{bar(v/max_b*100, "#c0392b")}</span><span style="min-width:28px;font:700 12px/1 Inter,sans-serif;text-align:right">{v}</span></div>' for k,v in barriers) or '<div style="color:#6e6e6e;font:500 12px/1 Inter,sans-serif">No dominant barrier phrase in Q12 at this n — read open text directly.</div>'
+    # 4) segment table
+    seg_head = '<div style="display:grid;grid-template-columns:1.2fr .6fr .6fr 1fr 1fr;gap:8px;padding:8px 10px;background:#f6f5f4;border-radius:10px;font:700 10px/1 Inter,sans-serif;letter-spacing:.06em;text-transform:uppercase;color:#6e6e6e"><span>Segment</span><span>Value</span><span>Try</span><span>Motivation</span><span>Objection</span></div>'
+    seg_rows = "".join(f'<div style="display:grid;grid-template-columns:1.2fr .6fr .6fr 1fr 1fr;gap:8px;padding:10px;border-bottom:1px solid #eee;align-items:center"><span style="font:600 12px/1 Inter,sans-serif">{esc(s["name"])} <span style="color:#6e6e6e;font-weight:500">n={s["n"]}</span></span><span style="font:700 13px/1 Inter,sans-serif">{s["q1"]:.1f}</span><span style="font:700 13px/1 Inter,sans-serif">{s["q7"]:.1f}</span><span style="font:500 11px/1.3 Inter,sans-serif">{esc(s["motivation"])}</span><span style="font:500 11px/1.3 Inter,sans-serif;color:#615d59">{esc(s["objection"])}</span></div>' for s in seg_stats)
+    # 5) single-choice / max-3 summaries (generic: detect any single_choice / max_3 in instrument)
+    choice_blocks = ""
+    for q in instrument.get("questions", []):
+        if q.get("type") == "single_choice":
+            counts = aggregates.get("journeys", {}) if q["id"] == "Q9" else {}
+            # generic fallback: count any single_choice answers if journeys empty
+            if not counts:
+                raw = [(x.get(q["id"]) or {}).get("choice") for x in responses]
+                from collections import Counter as _C
+                counts = dict(_C([v for v in raw if v]))
+            if counts:
+                rows = "".join(f"<div style='display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #eee'><span style='font:500 12px/1 Inter,sans-serif'>{esc(k)}</span><b style='font:700 12px/1 Inter,sans-serif'>{v}</b></div>" for k,v in sorted(counts.items(), key=lambda kv: kv[1], reverse=True))
+                choice_blocks += f'<div class="card"><div style="font:700 11px/1 Inter,sans-serif;letter-spacing:.06em;text-transform:uppercase;color:#6e6e6e">{esc(q["id"])} · {esc(q.get("prompt","")[:60])}</div><div style="margin-top:8px">{rows}</div></div>'
+        elif q.get("type") == "max_3":
+            counts = aggregates.get("top3", {})
+            if not counts:
+                from collections import Counter as _C2
+                flat = []
+                for x in responses: flat.extend((x.get(q["id"]) or {}).get("choices", []))
+                counts = dict(_C2(flat))
+            if counts:
+                rows2 = "".join(f"<div style='display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #eee'><span style='font:500 12px/1 Inter,sans-serif'>{esc(k)}</span><span style='font:700 12px/1 Inter,sans-serif'>{v} · {round(v/max(1,n)*100,1)}%</span></div>" for k,v in sorted(counts.items(), key=lambda kv: kv[1], reverse=True))
+                choice_blocks += f'<div class="card"><div style="font:700 11px/1 Inter,sans-serif;letter-spacing:.06em;text-transform:uppercase;color:#6e6e6e">{esc(q["id"])} · {esc(q.get("prompt","")[:60])}</div><div style="margin-top:8px">{rows2}</div></div>'
+    # 6) respondent cards (generic: show Q1 + Q7/NPS + primary choice)
     cards = ""
     for r in responses:
         author = esc(r.get("_author","?"))
-        eng_sig = esc((r.get("_rubric",{}).get("engine") or {}).get("signature","—"))
-        q1 = r.get("Q1",{}).get("score","—")
-        npsv = r.get("Q8",{}).get("score","—")
-        journey = esc(r.get("Q9",{}).get("choice","—")[:42])
-        q11 = esc(r.get("Q11",{}).get("text","")[:180])
-        q12 = esc(r.get("Q12",{}).get("text","")[:180])
-        q1_why = esc(r.get("Q1",{}).get("why","")[:100])
-        cards += f'<a href="../dataset-pilot-20-deepseek/dossiers/u_{author}.html" target="_blank" rel="noopener" style="text-decoration:none;color:inherit"><div style="border:1px solid #d9d9d9;background:#fff;border-radius:12px;padding:14px"><div style="font:700 11px/1 Inter,sans-serif;letter-spacing:.06em;text-transform:uppercase;color:#6e6e6e">u/{author} · {eng_sig}</div><div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap">{chip(f"Q1 usefulness {q1}/7")} {chip(f"NPS {npsv}/10", "#e6f3fe")} {chip(journey, "#f6f5f4")}</div><div style="margin-top:10px;font:500 11px/1 Inter,sans-serif;letter-spacing:.06em;text-transform:uppercase;color:#757575">What would make it helpful</div><div style="font:400 13px/1.45 Georgia,serif;margin-top:4px">“{q11}”</div><div style="margin-top:8px;font:500 11px/1 Inter,sans-serif;letter-spacing:.06em;text-transform:uppercase;color:#757575">Blocker</div><div style="font:400 13px/1.45 Georgia,serif;margin-top:4px;color:#615d59">“{q12}”</div><div style="margin-top:8px;font:500 10px/1.3 Inter,sans-serif;color:#6e6e6e">{q1_why}</div></div></a>'
+        eng_sig = esc((r.get("_rubric",{}).get("engine") or {}).get("signature", "—"))
+        q1 = r.get("Q1",{}).get("score", "—")
+        q7 = r.get("Q7",{}).get("score", r.get("Q3",{}).get("score", "—"))
+        npsv = r.get("Q8",{}).get("score", "—")
+        primary = ""
+        if r.get("Q9"): primary = esc(r.get("Q9",{}).get("choice","")[:48])
+        q11 = esc((r.get("Q11") or {}).get("text","")[:180])
+        q12 = esc((r.get("Q12") or {}).get("text","")[:180])
+        q1_why = esc((r.get("Q1") or {}).get("why","")[:110])
+        # link: try canonical dataset path
+        cards += f'<a href="../dataset-pilot-20/dossiers/u_{author}.html" target="_blank" rel="noopener" style="text-decoration:none;color:inherit"><div style="border:1px solid #d9d9d9;background:#fff;border-radius:12px;padding:14px"><div style="font:700 11px/1 Inter,sans-serif;letter-spacing:.06em;text-transform:uppercase;color:#6e6e6e">u/{author} · {eng_sig}</div><div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap">{chip(f"Q1 {q1}/7")} {chip(f"NPS {npsv}/10", "#e6f3fe")} {chip(primary, "#f6f5f4") if primary else ""}</div><div style="margin-top:10px;font:500 11px/1 Inter,sans-serif;letter-spacing:.06em;text-transform:uppercase;color:#757575">What would make it helpful</div><div style="font:400 13px/1.45 Georgia,serif;margin-top:4px">“{q11}”</div><div style="margin-top:8px;font:500 11px/1 Inter,sans-serif;letter-spacing:.06em;text-transform:uppercase;color:#757575">Blocker</div><div style="font:400 13px/1.45 Georgia,serif;margin-top:4px;color:#615d59">“{q12}”</div><div style="margin-top:8px;font:500 10px/1.3 Inter,sans-serif;color:#6e6e6e">{q1_why}</div></div></a>'
+    # 7) final 8 (generic recommendations)
+    strongest_insight = f"{strongest_q.get('prompt','')[:80]} — mean {aggregates['likerts'][strongest_q['id']]['mean']:.1f}/7" if strongest_q else "See value ranking"
+    biggest_uncertainty = f"n={n} → ±{pilot_margin:.1f}% at 95%; synthetic, not fielded — language ≈ attitude > behavior"
+    tradeoff = f"Strongest capability ({strongest_q['id'] if strongest_q else '—'}) vs weakest ({weakest_q['id'] if weakest_q else '—'}) — test whether weak signal is product or messaging"
+    best_msg = "Test architecture-led vs outcome-led framing with real users (brief’s required experiment)"
+    riskiest = f"Top barrier ‘{barrier_label}’ — if unaddressed, adoption intent collapses even among {top_segment}"
+    product_change = f"Reduce friction for ‘{barrier_label}’ before adding features"
+    real_test = next_exp
+    cannot = "Simulation cannot establish causal behavior, willingness to pay, or population prevalence — only simulated language/attitude distributions"
     return f"""<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><meta name="color-scheme" content="light"/>
-<title>UCC Hermes — Simulated Survey · r/{esc(subreddit)} · n={n}</title>
+<title>{esc(instrument.get("title","Synthetic Survey")[:80])} · r/{esc(subreddit)} · n={n}</title>
 <style>
 :root{{--c-cream:#fdfcf3;--c-linen:#f7f5f3;--c-paper:#fff;--c-ink:#0d0d0d;--c-rule:#d9d9d9;--c-mute:#6e6e6e;--c-yellow:#ffc500;--c-blue:#0075de;--r:16px}}
 *{{box-sizing:border-box}}body{{margin:0;background:var(--c-linen);color:var(--c-ink);font-family:Inter,system-ui,sans-serif;-webkit-font-smoothing:antialiased}}
@@ -248,69 +421,162 @@ a{{color:var(--c-blue)}}
 .grid3{{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}}@media(max-width:900px){{.grid3{{grid-template-columns:1fr 1fr}}}}@media(max-width:560px){{.grid3{{grid-template-columns:1fr}}}}
 .pill{{display:inline-block;font:700 10px/1 Inter,sans-serif;letter-spacing:.06em;text-transform:uppercase;padding:4px 8px;border-radius:9999px;border:1px solid rgba(0,0,0,.08)}}
 .eyebrow{{font:700 11px/1 Inter,sans-serif;letter-spacing:.07em;text-transform:uppercase;color:var(--c-mute);margin:0 0 8px}}
+.warn{{background:#fff7cc;border:1px solid #e6c200;border-radius:12px;padding:12px 14px;font:500 12px/1.5 Inter,sans-serif}}
 </style></head><body>
-<div style="position:sticky;top:0;z-index:10;background:#fff;border-bottom:1px solid var(--c-rule);display:flex;align-items:center;justify-content:space-between;padding:0 16px;height:40px;font:700 13px/1 Inter,sans-serif;letter-spacing:.06em">MONOCLE · SURVEY SIMULATION · r/{esc(subreddit)} <span class="pill" style="background:var(--c-yellow)">n={n} personas</span></div>
+<div style="position:sticky;top:0;z-index:10;background:#fff;border-bottom:1px solid var(--c-rule);display:flex;align-items:center;justify-content:space-between;padding:0 16px;height:40px;font:700 13px/1 Inter,sans-serif;letter-spacing:.06em">HERMES · SYNTHETIC SURVEY · r/{esc(subreddit)} <span class="pill" style="background:var(--c-yellow)">n={n} simulated</span></div>
+<div class="warn" style="max-width:1100px;margin:12px auto 0;padding:10px 14px;text-align:center">⚠ {esc(SYNTHETIC_WARNING)}</div>
 <header class="hero">
-  <div style="font:700 11px/1 Inter,sans-serif;letter-spacing:.12em;text-transform:uppercase;color:var(--c-mute)">{esc(instrument.get('title','UCC HERMES — THRICE GREAT')[:80])} · PIPELINE 3 · SYNTHETIC SURVEY</div>
-  <h1 style="margin:8px 0 0;font-family:Georgia,serif;font-size:38px;line-height:1.02;letter-spacing:-.03em">Would <em style="font-style:normal;background:linear-gradient(transparent 60%,var(--c-yellow) 60% 88%,transparent 88%)">r/{esc(subreddit)}</em> want this?</h1>
-  <p style="max-width:68ch;color:var(--c-mute);line-height:1.5;margin:10px 0 0">{esc(instrument.get('intro','Synthetic responses simulated from V3.3 dossiers — engine, Big Five, and verbatim anchors shape Likert, NPS, journey preference, and open text.')[:520])}</p>
-  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px"><span class="pill" style="background:var(--c-yellow)">n={n} simulated respondents</span><span class="pill">r/{esc(subreddit)} · N≈{population:,}</span><span class="pill">instrument: 12 questions</span><span class="pill">model: deepseek-v4-flash</span></div>
+  <div style="font:700 11px/1 Inter,sans-serif;letter-spacing:.12em;text-transform:uppercase;color:var(--c-mute)">{esc(instrument.get("title","Synthetic Survey")[:90])} · PIPELINE 3 · SYNTHETIC SURVEY</div>
+  <h1 style="margin:8px 0 0;font-family:Georgia,serif;font-size:34px;line-height:1.05;letter-spacing:-.03em">What <em style="font-style:normal;background:linear-gradient(transparent 60%,var(--c-yellow) 60% 88%,transparent 88%)">r/{esc(subreddit)}</em> appears to value — and what would prevent adoption</h1>
+  <p style="max-width:68ch;color:var(--c-mute);line-height:1.5;margin:10px 0 0">{esc(instrument.get("intro","Synthetic responses simulated from V3.3 dossiers — engine, Big Five, and verbatim anchors shape Likert, NPS, choice, and open text.")[:520])}</p>
+  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px"><span class="pill" style="background:var(--c-yellow)">n={n} simulated respondents</span><span class="pill">r/{esc(subreddit)} · N≈{population:,}</span><span class="pill">instrument: {len(instrument.get("questions",[]))} questions</span><span class="pill">run {esc(run_id)}</span></div>
 </header>
 <div style="max-width:1100px;margin:0 auto;padding:0 16px">
+<!-- 01 EXECUTIVE SUMMARY -->
 <section style="padding:18px 0;border-top:1px solid var(--c-rule)">
-  <div class="eyebrow">01 · Methodology — with what confidence do we know this?</div>
-  <div class="card" style="background:#fdfcf3">
-    <div style="font:700 13px/1 Inter,sans-serif">Sample-size context</div>
-    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-top:12px">
-      <div style="border:1px solid var(--c-rule);background:#fff;border-radius:12px;padding:12px"><div style="font:700 10px/1 Inter,sans-serif;letter-spacing:.06em;text-transform:uppercase;color:var(--c-mute)">Population</div><b style="font-size:22px">r/{esc(subreddit)} · {population:,}</b><div style="font:500 11px/1.3 Inter,sans-serif;color:var(--c-mute);margin-top:4px">Arctic Shift subscribers</div></div>
-      <div style="border:1px solid var(--c-rule);background:var(--c-yellow);border-radius:12px;padding:12px"><div style="font:700 10px/1 Inter,sans-serif;letter-spacing:.06em;text-transform:uppercase">Required @95% ±5%</div><b style="font-size:22px">385</b><div style="font:500 11px/1.3 Inter,sans-serif;margin-top:4px">pull 482 · pilot 50</div></div>
-      <div style="border:1px solid var(--c-rule);background:#fff;border-radius:12px;padding:12px"><div style="font:700 10px/1 Inter,sans-serif;letter-spacing:.06em;text-transform:uppercase;color:var(--c-mute)">This pilot</div><b style="font-size:22px">n={n} → ±{pilot_margin:.1f}%</b><div style="font:500 11px/1.3 Inter,sans-serif;color:var(--c-mute);margin-top:4px">@95% · p=0.5 · fpc applied</div></div>
-    </div>
-    <p style="font:500 12px/1.5 Inter,sans-serif;color:var(--c-mute);margin:10px 0 0">With <b style="color:var(--c-ink)">{population:,} at 95% / ±5%</b> we think you need 385 completes. We recommend 482 pulls (buffer for thin authors) and a pilot of 50. This pilot is <b style="color:var(--c-ink)">n={n}</b> (±{pilot_margin:.1f}% at 95%) — directionally useful, not inferential. Scale to 385 to claim ±5%.</p>
-  </div>
-</section>
-<section style="padding:18px 0;border-top:1px solid var(--c-rule)">
-  <div class="eyebrow">02 · Topline — usefulness</div>
-  <div class="kpi-grid">
-    <div class="card" style="background:var(--c-yellow);border-color:#000"><div style="font:700 10px/1 Inter,sans-serif;letter-spacing:.06em;text-transform:uppercase">Q1 Overall usefulness</div><b style="font-size:28px">{aggregates['likerts']['Q1']['mean']}/7</b><div style="font:500 11px/1 Inter,sans-serif;color:rgba(0,0,0,.6)">median {aggregates['likerts']['Q1']['median']} · top-2-box {aggregates['likerts']['Q1']['top2box']}%</div>{bar(aggregates['likerts']['Q1']['top2box'])}</div>
-    <div class="card"><div style="font:700 10px/1 Inter,sans-serif;letter-spacing:.06em;text-transform:uppercase;color:var(--c-mute)">Q7 Try in 3 months</div><b style="font-size:28px">{aggregates['likerts']['Q7']['mean']}/7</b><div style="font:500 11px/1 Inter,sans-serif;color:var(--c-mute)">top-2-box {aggregates['likerts']['Q7']['top2box']}%</div>{bar(aggregates['likerts']['Q7']['top2box'], "#62aef0")}</div>
-    <div class="card"><div style="font:700 10px/1 Inter,sans-serif;letter-spacing:.06em;text-transform:uppercase;color:var(--c-mute)">Q8 NPS</div><b style="font-size:28px">{aggregates['nps']['score']}</b><div style="font:500 11px/1 Inter,sans-serif;color:var(--c-mute)">{aggregates['nps']['promoters']}% promoters · {aggregates['nps']['detractors']}% detractors</div>{bar(aggregates['nps']['promoters'], "#0075de")}</div>
-    <div class="card"><div style="font:700 10px/1 Inter,sans-serif;letter-spacing:.06em;text-transform:uppercase;color:var(--c-mute)">Signal</div><div style="font:500 12px/1.4 Inter,sans-serif;margin-top:6px">Synthetic — persona-grounded. Each “why” cites an anchor from the dossier. Treat Q11/Q12 open text as the richest signal.</div></div>
-  </div>
-</section>
-<section style="padding:18px 0;border-top:1px solid var(--c-rule)">
-  <div class="eyebrow">03 · Usefulness by Hermes capability (Q2–Q6)</div>
-  <div class="grid3">{likert_rows}</div>
-</section>
-<section style="padding:18px 0;border-top:1px solid var(--c-rule)">
-  <div class="eyebrow">04 · Journey & priorities</div>
+  <div class="eyebrow">01 · Executive summary — what this community appears to value</div>
   <div class="grid2">
-    <div class="card"><div style="font:700 11px/1 Inter,sans-serif;letter-spacing:.06em;text-transform:uppercase;color:var(--c-mute)">Q9 Journey preference</div><div style="margin-top:8px">{journey_rows or "<div style='color:var(--c-mute)'>No data</div>"}</div></div>
-    <div class="card"><div style="font:700 11px/1 Inter,sans-serif;letter-spacing:.06em;text-transform:uppercase;color:var(--c-mute)">Q10 Top 3 capabilities (up to 3 each)</div><div style="margin-top:8px">{top3_rows or "<div style='color:var(--c-mute)'>No data</div>"}</div></div>
+    <div class="card" style="background:#fdfcf3">
+      <div style="font:700 13px/1 Inter,sans-serif">Product / concept</div>
+      <div style="font:500 12px/1.5 Inter,sans-serif;margin-top:6px;color:#2b2b2b">{esc(instrument.get("title","—"))}</div>
+      <div style="margin-top:12px;display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div><div style="font:700 10px/1 Inter,sans-serif;letter-spacing:.06em;text-transform:uppercase;color:var(--c-mute)">Source</div><div style="font:700 12px/1 Inter,sans-serif;margin-top:4px">r/{esc(subreddit)} · N={population:,}</div><div style="font:500 11px/1 Inter,sans-serif;color:var(--c-mute)">{n} source Redditors · {n} simulated</div></div>
+        <div><div style="font:700 10px/1 Inter,sans-serif;letter-spacing:.06em;text-transform:uppercase;color:var(--c-mute)">Strongest signal</div><div style="font:700 12px/1.3 Inter,sans-serif;margin-top:4px">{esc(strongest_insight)}</div></div>
+      </div>
+      <div style="margin-top:12px;display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div><div style="font:700 10px/1 Inter,sans-serif;letter-spacing:.06em;text-transform:uppercase;color:#8a1f1f">Strongest barrier</div><div style="font:700 12px/1.3 Inter,sans-serif;margin-top:4px">{esc(barrier_label)}</div></div>
+        <div><div style="font:700 10px/1 Inter,sans-serif;letter-spacing:.06em;text-transform:uppercase;color:var(--c-mute)">Most promising segment</div><div style="font:700 12px/1.3 Inter,sans-serif;margin-top:4px">{esc(top_segment)} (n={[s["n"] for s in seg_stats if s["name"]==top_segment][0] if top_segment!="—" and seg_stats else 0})</div></div>
+      </div>
+      <div style="margin-top:12px;padding:10px;background:#fff;border:1px solid var(--c-rule);border-radius:10px"><div style="font:700 10px/1 Inter,sans-serif;letter-spacing:.06em;text-transform:uppercase;color:var(--c-mute)">Recommended next experiment</div><div style="font:700 12px/1.4 Inter,sans-serif;margin-top:4px">{esc(real_test)}</div></div>
+    </div>
+    <div class="card">
+      <div style="font:700 11px/1 Inter,sans-serif;letter-spacing:.06em;text-transform:uppercase;color:var(--c-mute)">At a glance</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px">
+        <div style="border:1px solid var(--c-rule);border-radius:12px;padding:12px;background:var(--c-yellow)"><div style="font:700 10px/1 Inter,sans-serif;letter-spacing:.06em;text-transform:uppercase">Strongest positive</div><b style="font-size:22px">{aggregates["likerts"][strongest_q["id"]]["mean"] if strongest_q else "—"}/7</b><div style="font:500 11px/1 Inter,sans-serif;color:rgba(0,0,0,.6)">{esc(strongest_q["id"] if strongest_q else "—")} · top-2-box {aggregates["likerts"][strongest_q["id"]]["top2box"] if strongest_q else 0}%</div></div>
+        <div style="border:1px solid var(--c-rule);border-radius:12px;padding:12px"><div style="font:700 10px/1 Inter,sans-serif;letter-spacing:.06em;text-transform:uppercase;color:var(--c-mute)">Weakest signal</div><b style="font-size:22px">{aggregates["likerts"][weakest_q["id"]]["mean"] if weakest_q else "—"}/7</b><div style="font:500 11px/1 Inter,sans-serif;color:var(--c-mute)">{esc(weakest_q["id"] if weakest_q else "—")} · top-2-box {aggregates["likerts"][weakest_q["id"]]["top2box"] if weakest_q else 0}%</div></div>
+      </div>
+      <div style="margin-top:10px;display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div style="border:1px solid var(--c-rule);border-radius:12px;padding:12px"><div style="font:700 10px/1 Inter,sans-serif;letter-spacing:.06em;text-transform:uppercase;color:var(--c-mute)">Adoption intent (Q7)</div><b style="font-size:20px">{aggregates["likerts"].get("Q7",{}).get("mean", aggregates["likerts"].get("Q1",{}).get("mean",0))}/7</b><div style="font:500 11px/1 Inter,sans-serif;color:var(--c-mute)">top-2-box {aggregates["likerts"].get("Q7",{}).get("top2box", 0)}%</div></div>
+        <div style="border:1px solid var(--c-rule);border-radius:12px;padding:12px"><div style="font:700 10px/1 Inter,sans-serif;letter-spacing:.06em;text-transform:uppercase;color:var(--c-mute)">NPS</div><b style="font-size:20px">{aggregates["nps"]["score"]}</b><div style="font:500 11px/1 Inter,sans-serif;color:var(--c-mute)">{aggregates["nps"]["promoters"]}% prom · {aggregates["nps"]["detractors"]}% detr</div></div>
+      </div>
+      <div style="margin-top:10px;font:500 11px/1.4 Inter,sans-serif;color:var(--c-mute)">Sample-size note: with N={population:,} @95%/±5% need 385. This pilot n={n} → ±{pilot_margin:.1f}% — directionally useful, not inferential.</div>
+    </div>
   </div>
 </section>
+<!-- 02 METHODOLOGY + LIMITATIONS -->
 <section style="padding:18px 0;border-top:1px solid var(--c-rule)">
-  <div class="eyebrow">05 · Individual simulated responses — click card for dossier</div>
-  <div class="grid2">{cards}</div>
-</section>
-<section style="padding:18px 0;border-top:1px solid var(--c-rule)">
-  <div class="eyebrow">06 · Instrument & reproducibility</div>
-  <div class="grid2">
-    <div class="card" style="background:#f6f5f4"><div style="font:700 11px/1 Inter,sans-serif;letter-spacing:.06em;text-transform:uppercase;color:var(--c-mute)">Survey instrument (12 Qs)</div>
-      <div style="font:500 12px/1.5 Inter,sans-serif;margin-top:8px">Q1–Q7 Likert 1-7 · Q8 NPS 0-10 · Q9 single choice (Journey A/B/Neither/Undecided) · Q10 max-3 · Q11–Q12 open (≤280 chars). Grounded in SOP v6 sections cited above.</div>
-      <div style="font:500 11px/1.4 Inter,sans-serif;color:var(--c-mute);margin-top:8px">Prompt-cache: system=instrument (stable, ~3k tokens), user=persona summary (variable, ~1k). DeepSeek context caching on system prefix.</div>
-    </div>
-    <div class="card"><div style="font:700 11px/1 Inter,sans-serif;letter-spacing:.06em;text-transform:uppercase;color:var(--c-mute)">Files</div>
-      <div style="font:500 12px/1.5 Inter,sans-serif;margin-top:8px">
-        <code>responses.jsonl</code> — one JSON per persona (full Q1..Q12 + why)<br/>
-        <code>responses.csv</code> — flat table for Sheets/Excel<br/>
-        <code>personas.jsonl</code> — source dossiers (V3.3)<br/>
-        Re-run: <code>python synthetic_survey.py --personas ../dataset-pilot-20-deepseek/personas.jsonl --out .</code>
+  <div class="eyebrow">02 · Methodology and limitations — what was simulated, what was not</div>
+  <div class="card" style="background:#fff">
+    <div style="display:grid;grid-template-columns:1.15fr .85fr;gap:14px">
+      <div>
+        <div style="font:700 12px/1 Inter,sans-serif">Five layers — do not conflate</div>
+        <ol style="margin:8px 0 0 18px;font:500 12px/1.6 Inter,sans-serif;color:#2b2b2b">
+          <li><b>Comments collected</b> — Arctic Shift archive, r/{esc(subreddit)}, {n} Redditors, ~{n*30} comments (limit 30/author), {esc(meta.get("collection_period","7d window"))}</li>
+          <li><b>Profiles inferred</b> — V3.3 dossier per author (Engine C/F/A1/A2/P, Big Five, quotes, arguments, one_line); inferred independently per author</li>
+          <li><b>Synthetic responses generated</b> — one simulated completion per persona via <code>{esc(meta.get("model","deepseek-v4-flash"))}</code> (prompt v{esc(meta.get("prompt_version","3"))}, seed {esc(meta.get("seed","run_id"))})</li>
+          <li><b>Metrics calculated</b> — mean/median/top-2-box/dist per Likert; NPS; choice/max-3 frequencies; segment splits</li>
+          <li><b>Real-world evidence</b> — {esc(meta.get("real_world_evidence","none in this pilot — calibration requires fielded interviews/surveys/conversions; see scorecard below"))}</li>
+        </ol>
+        <div class="warn" style="margin-top:12px">⚠ {esc(SYNTHETIC_WARNING)}</div>
+      </div>
+      <div style="border:1px solid var(--c-rule);border-radius:12px;padding:12px;background:#f6f5f4">
+        <div style="font:700 11px/1 Inter,sans-serif;letter-spacing:.06em;text-transform:uppercase;color:var(--c-mute)">Run provenance</div>
+        <table style="width:100%;margin-top:8px;border-collapse:collapse;font:500 11px/1.4 Inter,sans-serif">
+          <tr><td style="color:var(--c-mute);padding:4px 8px 4px 0">Source</td><td><b>r/{esc(subreddit)}</b> · N={population:,}</td></tr>
+          <tr><td style="color:var(--c-mute);padding:4px 8px 4px 0">Authors / comments</td><td>{n} / ~{n*30} · ≥30/author where available</td></tr>
+          <tr><td style="color:var(--c-mute);padding:4px 8px 4px 0">Selection</td><td>{esc(meta.get("selection","top commenters by recent activity; thin authors (&lt;20 comments) skipped; 0 removed for this report"))}</td></tr>
+          <tr><td style="color:var(--c-mute);padding:4px 8px 4px 0">Model / prompt</td><td>{esc(meta.get("model","deepseek-v4-flash"))} · prompt v{esc(meta.get("prompt_version","3"))} · run {esc(run_id)}</td></tr>
+          <tr><td style="color:var(--c-mute);padding:4px 8px 4px 0">Independence</td><td>One simulation per persona; no cross-persona context</td></tr>
+          <tr><td style="color:var(--c-mute);padding:4px 8px 4px 0">Heuristic fallback</td><td>{aggregates.get("heuristic_count",0)} of {n} (re-run with DEEPSEEK_API_KEY for full LLM)</td></tr>
+        </table>
+        <div style="margin-top:10px;font:700 10px/1 Inter,sans-serif;letter-spacing:.06em;text-transform:uppercase;color:var(--c-mute)">Known biases</div>
+        <ul style="margin:6px 0 0 16px;font:500 11px/1.5 Inter,sans-serif;color:#6e6e6e">
+          <li>Sampling: Reddit-active only; thin authors excluded may underrepresent lurkers/casuals</li>
+          <li>Model: LLM conservatism + persona anchoring may overstate barriers vs field</li>
+          <li>n={n} · use for hypothesis generation (brief’s guidance: 20=“qual”, 50–100=“themes”, 100–300=“segments”)</li>
+          <li>Language ≈ attitude &gt; behavior: confidence in wording does not transfer to purchase/retention</li>
+        </ul>
       </div>
     </div>
   </div>
 </section>
-<div style="padding:12px 0;text-align:center;font:500 10px/1 Inter,sans-serif;letter-spacing:.06em;text-transform:uppercase;color:var(--c-mute);border-top:1px solid var(--c-rule);margin-top:12px">MONOCLE · Pipeline 3 · r/{esc(subreddit)} · {now} · Synthetic — not fielded · Single-file HTML — opens offline</div>
+<!-- 03 AUDIENCE COMPOSITION -->
+<section style="padding:18px 0;border-top:1px solid var(--c-rule)">
+  <div class="eyebrow">03 · Audience composition — who this community appears to be</div>
+  <div class="card">
+    <div style="font:700 11px/1 Inter,sans-serif;letter-spacing:.06em;text-transform:uppercase;color:var(--c-mute)">Inferred segments (Engine C/F-derived; not generic personality labels)</div>
+    <div style="margin-top:10px">{seg_head}{seg_rows or '<div style="padding:10px;color:#6e6e6e">Insufficient n for stable segments — recruit to 50+ per brief.</div>'}</div>
+    <details style="margin-top:10px"><summary style="cursor:pointer;font:600 11px/1 Inter,sans-serif;color:var(--c-blue)">Segment dimensions the brief recommends capturing (show when n≥50)</summary><div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:6px">{chip("experience: beginner ↔ expert","#f6f5f4")} {chip("enthusiast ↔ skeptic","#f6f5f4")} {chip("professional ↔ hobbyist","#f6f5f4")} {chip("spending power","#f6f5f4")} {chip("privacy sensitivity","#f6f5f4")} {chip("urgency","#f6f5f4")} {chip("current alternatives","#f6f5f4")} {chip("technical comfort","#f6f5f4")} {chip("identity investment","#f6f5f4")}</div><div style="font:500 11px/1.4 Inter,sans-serif;color:#6e6e6e;margin-top:6px">Do not impose categories unsupported by source data — these are prompts for the analyst to code from quotes when n is larger.</div></details>
+  </div>
+</section>
+<!-- 04 CONCEPT EVALUATION -->
+<section style="padding:18px 0;border-top:1px solid var(--c-rule)">
+  <div class="eyebrow">04 · Concept evaluation — usefulness, relevance, and what prevents adoption</div>
+  <div class="grid3">{likert_rows or '<div style="color:#6e6e6e">No Likert questions in instrument.</div>'}</div>
+  <div style="margin-top:12px" class="grid2"><div class="card"><div style="font:700 11px/1 Inter,sans-serif;letter-spacing:.06em;text-transform:uppercase;color:var(--c-mute)">Adoption funnel (generic)</div><div style="margin-top:8px">{funnel_rows}</div><div style="font:500 11px/1.3 Inter,sans-serif;color:#6e6e6e;margin-top:8px">% scoring ≥5 (Likert) or ≥7 (NPS). Real funnel requires fielded awareness ↔ trial ↔ repeat.</div></div><div class="card"><div style="font:700 11px/1 Inter,sans-serif;letter-spacing:.06em;text-transform:uppercase;color:var(--c-mute)">Barrier frequency (from Q12 open text)</div><div style="margin-top:8px">{barrier_rows}</div></div></div>
+</section>
+<!-- 05 VALUE RANKING + SEGMENT COMPARISON -->
+<section style="padding:18px 0;border-top:1px solid var(--c-rule)">
+  <div class="eyebrow">05 · Segment comparison — which groups differ meaningfully</div>
+  <div class="grid2">
+    <div class="card"><div style="font:700 11px/1 Inter,sans-serif;letter-spacing:.06em;text-transform:uppercase;color:var(--c-mute)">Value ranking (which benefits score highest)</div><div style="margin-top:8px">{ranking_rows or '<div style="color:#6e6e6e">No Likert ranking available.</div>'}</div></div>
+    <div class="card"><div style="font:700 11px/1 Inter,sans-serif;letter-spacing:.06em;text-transform:uppercase;color:var(--c-mute)">What people use instead — and switching triggers (from Q11/Q12)</div><div style="font:500 12px/1.5 Inter,sans-serif;margin-top:8px;color:#2b2b2b">Read Q11 “what would make it helpful” + Q12 “blocker” per respondent below for alternatives and triggers. At n≥50, code alternatives into: <code>current-alternative map</code> (manual, spreadsheet, competing app, nothing) and triggers (price drop, trust proof, integration, failure of current tool).</div><div style="margin-top:10px;font:500 11px/1.4 Inter,sans-serif;color:#6e6e6e">Decision-journey and message-comparison views are instrument-dependent — add them when you test multiple framings (architecture-led vs outcome-led).</div></div>
+  </div>
+  <div class="card" style="margin-top:12px"><div style="font:700 11px/1 Inter,sans-serif;letter-spacing:.06em;text-transform:uppercase;color:var(--c-mute)">Per-segment detail — value · intent · motivation · objection · proof needed · trigger (brief §5)</div><div style="margin-top:8px">{seg_head}{seg_rows or '<div style="padding:10px;color:#6e6e6e">Segment table requires n≥20 with valid Engine scores.</div>'}</div><div style="font:500 11px/1.3 Inter,sans-serif;color:#6e6e6e;margin-top:8px">Cut the data by inferred segment, not by treating the subreddit as one audience. At n=20, treat segment deltas as hypotheses.</div></div>
+</section>
+<!-- 06 INDIVIDUAL RESPONSES -->
+<section style="padding:18px 0;border-top:1px solid var(--c-rule)">
+  <div class="eyebrow">06 · Simulated individual responses — click card for dossier</div>
+  <div class="grid2">{cards}</div>
+</section>
+<!-- 07 CALIBRATION & TRUST -->
+<section style="padding:18px 0;border-top:1px solid var(--c-rule)">
+  <div class="eyebrow">07 · Calibration and trust — where synthetic predictions should and should not be used</div>
+  <div class="grid2">
+    <div class="card" style="background:#fdfcf3"><div style="font:700 11px/1 Inter,sans-serif;letter-spacing:.06em;text-transform:uppercase">Four prediction types — do not conflate</div><table style="width:100%;margin-top:8px;border-collapse:collapse;font:500 12px/1.4 Inter,sans-serif"><tr style="border-bottom:1px solid var(--c-rule)"><td style="padding:6px 8px 6px 0"><b>Language</b></td><td>What words/phrases this community uses</td><td style="text-align:right"><span class="pill" style="background:#d4edda">most reliable</span></td></tr><tr style="border-bottom:1px solid var(--c-rule)"><td style="padding:6px 8px 6px 0"><b>Attitude</b></td><td>Stated usefulness / intent</td><td style="text-align:right"><span class="pill" style="background:#fff3cd">moderate</span></td></tr><tr style="border-bottom:1px solid var(--c-rule)"><td style="padding:6px 8px 6px 0"><b>Behavior</b></td><td>Trial, setup, repeat use</td><td style="text-align:right"><span class="pill" style="background:#f8d7da">weak — field it</span></td></tr><tr><td style="padding:6px 8px 6px 0"><b>Business outcome</b></td><td>Paid conversion, churn</td><td style="text-align:right"><span class="pill" style="background:#f8d7da">do not infer</span></td></tr></table><div style="font:500 11px/1.4 Inter,sans-serif;color:#6e6e6e;margin-top:8px">Confidence in wording does not transfer to action. Each row needs its own calibration.</div></div>
+    <div class="card"><div style="font:700 11px/1 Inter,sans-serif;letter-spacing:.06em;text-transform:uppercase;color:var(--c-mute)">Calibration scorecard (fill as real evidence arrives)</div><table style="width:100%;margin-top:8px;border-collapse:collapse;font:500 11px/1.4 Inter,sans-serif"><tr style="background:#f6f5f4"><th style="text-align:left;padding:6px 8px">Signal</th><th style="text-align:left;padding:6px 8px">Synthetic</th><th style="text-align:left;padding:6px 8px">Real</th><th style="text-align:left;padding:6px 8px">Delta</th></tr><tr style="border-top:1px solid #eee"><td style="padding:6px 8px">Interview language</td><td style="padding:6px 8px">—</td><td style="padding:6px 8px;color:var(--c-mute)">pending</td><td style="padding:6px 8px">—</td></tr><tr style="border-top:1px solid #eee"><td style="padding:6px 8px">Landing-page CVR</td><td style="padding:6px 8px">—</td><td style="padding:6px 8px;color:var(--c-mute)">pending</td><td style="padding:6px 8px">—</td></tr><tr style="border-top:1px solid #eee"><td style="padding:6px 8px">Signup → activation</td><td style="padding:6px 8px">—</td><td style="padding:6px 8px;color:var(--c-mute)">pending</td><td style="padding:6px 8px">—</td></tr><tr style="border-top:1px solid #eee"><td style="padding:6px 8px">Repeat use / paid</td><td style="padding:6px 8px">—</td><td style="padding:6px 8px;color:var(--c-mute)">pending</td><td style="padding:6px 8px">—</td></tr></table><div style="font:500 11px/1.3 Inter,sans-serif;color:#6e6e6e;margin-top:8px">Sample-size guidance: 20=“qual hypotheses” · 50–100=“themes + message tests” · 100–300=“segments” · 1000+=“rare segments only”. Run multiple simulations per persona to separate person vs model variance.</div></div>
+  </div>
+</section>
+<!-- 08 FINAL 8 -->
+<section style="padding:18px 0;border-top:1px solid var(--c-rule)">
+  <div class="eyebrow">08 · What this simulation can establish — and what must be tested with real people</div>
+  <div class="card" style="background:#0d0d0d;color:#f7f5f3;border-color:#0d0d0d">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+      <div><div style="font:700 10px/1 Inter,sans-serif;letter-spacing:.06em;text-transform:uppercase;color:#c9c9c9">Strongest insight (simulated)</div><div style="font:600 13px/1.4 Inter,sans-serif;margin-top:6px">{esc(strongest_insight)}</div></div>
+      <div><div style="font:700 10px/1 Inter,sans-serif;letter-spacing:.06em;text-transform:uppercase;color:#c9c9c9">Biggest uncertainty</div><div style="font:500 12px/1.5 Inter,sans-serif;margin-top:6px">{esc(biggest_uncertainty)}</div></div>
+      <div><div style="font:700 10px/1 Inter,sans-serif;letter-spacing:.06em;text-transform:uppercase;color:#c9c9c9">Top contradiction / trade-off</div><div style="font:500 12px/1.5 Inter,sans-serif;margin-top:6px">{esc(tradeoff)}</div></div>
+      <div><div style="font:700 10px/1 Inter,sans-serif;letter-spacing:.06em;text-transform:uppercase;color:#c9c9c9">Best-performing message (simulated)</div><div style="font:500 12px/1.5 Inter,sans-serif;margin-top:6px">{esc(best_msg)}</div></div>
+      <div><div style="font:700 10px/1 Inter,sans-serif;letter-spacing:.06em;text-transform:uppercase;color:#c9c9c9">Highest-risk assumption</div><div style="font:500 12px/1.5 Inter,sans-serif;margin-top:6px">{esc(riskiest)}</div></div>
+      <div><div style="font:700 10px/1 Inter,sans-serif;letter-spacing:.06em;text-transform:uppercase;color:#c9c9c9">Recommended product change</div><div style="font:500 12px/1.5 Inter,sans-serif;margin-top:6px">{esc(product_change)}</div></div>
+      <div><div style="font:700 10px/1 Inter,sans-serif;letter-spacing:.06em;text-transform:uppercase;color:#c9c9c9">Recommended real-world test</div><div style="font:500 12px/1.5 Inter,sans-serif;margin-top:6px">{esc(real_test)}</div></div>
+      <div><div style="font:700 10px/1 Inter,sans-serif;letter-spacing:.06em;text-transform:uppercase;color:#c9c9c9">What simulation cannot establish</div><div style="font:500 12px/1.5 Inter,sans-serif;margin-top:6px">{esc(cannot)}</div></div>
+    </div>
+    <div style="margin-top:14px;padding:10px;background:#1a1a1a;border-radius:10px;font:500 11px/1.5 Inter,sans-serif;color:#c9c9c9">Goal: not a larger synthetic survey, but a clearer decision — what to build, who to target, how to communicate, and what must be tested with real people. Compare architecture-led vs outcome-led explanations to separate product signal from messaging signal.</div>
+  </div>
+</section>
+<!-- APPENDIX -->
+<section style="padding:18px 0;border-top:1px solid var(--c-rule)">
+  <div class="eyebrow">Appendix · Instrument, choices, and files</div>
+  <div class="grid2">
+    <div class="card" style="background:#f6f5f4"><div style="font:700 11px/1 Inter,sans-serif;letter-spacing:.06em;text-transform:uppercase;color:var(--c-mute)">Instrument ({len(instrument.get("questions",[]))} questions)</div>
+      <div style="font:500 12px/1.5 Inter,sans-serif;margin-top:8px">{esc(", ".join(f'{q["id"]}:{q.get("type","")}' for q in instrument.get("questions",[])))} — driven by <code>survey-instrument.json</code>; change the instrument per product without changing the template.</div>
+      <div style="font:500 11px/1.4 Inter,sans-serif;color:var(--c-mute);margin-top:8px">Prompt-cache: system=instrument (stable, ~2–3k tokens), user=persona summary (variable, ~1k). DeepSeek context caching on system prefix.</div>
+    </div>
+    <div class="card"><div style="font:700 11px/1 Inter,sans-serif;letter-spacing:.06em;text-transform:uppercase;color:var(--c-mute)">Choice & trade-off summaries</div><div style="margin-top:8px;display:grid;gap:12px">{choice_blocks or '<div style="color:var(--c-mute);font:500 12px/1 Inter,sans-serif">No single_choice / max_3 in this instrument.</div>'}</div></div>
+  </div>
+  <div class="card" style="margin-top:12px"><div style="font:700 11px/1 Inter,sans-serif;letter-spacing:.06em;text-transform:uppercase;color:var(--c-mute)">Files & reproducibility</div>
+      <div style="font:500 12px/1.5 Inter,sans-serif;margin-top:8px">
+        <code>responses.jsonl</code> — one JSON per persona (full answers + why)<br/>
+        <code>responses.csv</code> — flat table for Sheets/Excel<br/>
+        <code>personas.jsonl</code> — source dossiers (V3.3)<br/>
+        <code>survey-instrument.json</code> — instrument used for this run<br/>
+        <code>aggregates.json</code> — means/medians/top-2-box/dist<br/>
+        Re-run: <code>python synthetic_survey.py --personas ../dataset-pilot-20/personas.jsonl --out . --instrument ./survey-instrument.json</code><br/>
+        Range note: re-run with varied seeds / multiple simulations per persona to separate person vs model vs prompt variance.
+      </div>
+    </div>
+</section>
+<div style="padding:12px 0;text-align:center;font:500 10px/1 Inter,sans-serif;letter-spacing:.06em;text-transform:uppercase;color:var(--c-mute);border-top:1px solid var(--c-rule);margin-top:12px">HERMES · Pipeline 3 · r/{esc(subreddit)} · {now} · Synthetic — not fielded · Single-file HTML — opens offline</div>
 </div>
 </body></html>"""
 
@@ -439,7 +705,25 @@ def main():
     (outdir / "survey-instrument.json").write_text(json.dumps(SURVEY_INSTRUMENT, indent=2, ensure_ascii=False))
     aggregates = aggregate(responses)
     (outdir / "aggregates.json").write_text(json.dumps(aggregates, indent=2))
-    html = render_report(subreddit, population, responses, aggregates, SURVEY_INSTRUMENT)
+    # Build run provenance for methodology section
+    _run_id = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    _meta = {
+        "run_id": _run_id,
+        "model": args.model if not args.no_llm else "heuristic",
+        "prompt_version": "3",
+        "seed": _run_id,
+        "collection_period": "7d window (Arctic Shift)",
+        "selection": "top commenters by recent activity; thin authors (<20 comments) skipped",
+        "real_world_evidence": "none in this pilot — calibration requires fielded interviews/surveys/conversions",
+    }
+    try:
+        _mpath = Path(args.personas).parent / "manifest.json"
+        if _mpath.exists():
+            import json as _jm
+            _mj = _jm.loads(_mpath.read_text())
+            _meta["selection"] = f"{len(_mj.get('authors',[]))} authors targeted, {len(_mj.get('failed',[]))} thin/failed"
+    except: pass
+    html = render_report(subreddit, population, responses, aggregates, SURVEY_INSTRUMENT, _meta)
     report_path = outdir / "report.html"
     report_path.write_text(html, encoding="utf-8")
     print(f"[survey] wrote {jsonl_path} ({len(responses)} responses)", file=sys.stderr)
