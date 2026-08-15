@@ -427,10 +427,38 @@ def main():
     out.write_text(html, encoding="utf-8")
     print(f"[persona] wrote {out} ({len(html):,} bytes) — {len(comments)} comments", file=sys.stderr)
     print(str(out))
-    # also emit rubric json sidecar if LLM
+    # also emit rubric json sidecar (enriched for dataset clustering)
+    # Always write sidecar when we have synthesis; also write minimal sidecar in heuristic mode so dataset can still cluster on Engine
+    rubric_payload=None
     if synthesis:
+        rubric_payload={
+            "author": args.author,
+            "engine": synthesis.get("engine"),
+            "big_five": synthesis.get("big_five"),
+            "persona_stack": synthesis.get("persona_stack"),
+            "engine_metrics": synthesis.get("engine_metrics"),
+            "quotes": (synthesis.get("quotes") or [])[:2],
+            "arguments": synthesis.get("arguments"),
+            "one_line": synthesis.get("one_line"),
+            "model": args.model,
+            "comments": len(comments),
+        }
+    elif heuristic:
+        rubric_payload={
+            "author": args.author,
+            "engine": heuristic,
+            "big_five": None,
+            "persona_stack": None,
+            "engine_metrics": None,
+            "quotes": [{"text": (comments[0].get("body","") or "")[:160], "source": f"r/{comments[0].get('subreddit','?')}", "signal": "heuristic sample"}] if comments else [],
+            "arguments": None,
+            "one_line": f"Heuristic dossier for u/{author} — {n} comments.",
+            "model": "heuristic",
+            "comments": len(comments),
+        }
+    if rubric_payload:
         sidecar=out.with_suffix(".json")
-        sidecar.write_text(json.dumps({"author":args.author,"engine":synthesis.get("engine"),"persona_stack":synthesis.get("persona_stack"),"engine_metrics":synthesis.get("engine_metrics")}, indent=2))
+        sidecar.write_text(json.dumps(rubric_payload, ensure_ascii=False, indent=2))
         print(f"[persona] rubric → {sidecar}", file=sys.stderr)
 
 if __name__=="__main__": main()

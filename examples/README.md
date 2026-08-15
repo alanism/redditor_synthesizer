@@ -11,7 +11,7 @@ Sample artifacts from r/parenting + r/stocks + Decision > Prediction pilot run (
 | `Cosmos-r-stocks-95-5-required.html` | Pipeline C Cosmos brief — `N=8,418,548 @95%/±5% → n=385, pull 482, pilot 50` |
 | `Cosmos-r-stocks-95-3-tighter.html` | Tighter margin `@±3% → n=1,067` (tradeoff ref) |
 | `Cosmos-N1300-stocks-lens.html` | Fixed-population `N=1,300 → n=297, pull 431` |
-| `sample-dataset/` | Pipeline B sample — 2 Notion dossiers + `index.html`, `personas.jsonl` (trimmed), `manifest.json` |
+| `sample-dataset/` | Pipeline B **control panel** — 2 Notion dossiers + `index.html` (**Archetypes** bar + **Vega-Lite** 2 specs as JSON + expandable quote/argument + **Copy JSON**, local-first) + `personas.jsonl` (**enriched**: Big Five/quotes/arguments, not just Engine) + `manifest.json`. Real runs scale to 500+ via local SQLite. |
 | `sample-survey/` | Pipeline 3 sample — `report.html` (Cosmos), `aggregates.json`, `survey-instrument.json`, 2 respondents sample. Full run is `~/Documents/Vibe Code/reddit-intel-stocks/survey-simulation/` (20 respondents). |
 
 ## Full runs (local, not committed)

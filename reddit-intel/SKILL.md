@@ -1,7 +1,7 @@
 ---
 name: reddit-intel
 description: "Use when analyzing Reddit subreddits or redditors: pulse reports, persona synthesis, or synthetic datasets."
-version: 1.2.0
+version: 1.3.0
 author: Hermes Agent
 license: MIT
 metadata:
@@ -20,7 +20,7 @@ Three intelligence products on one data backbone (Arctic Shift API). Strictly to
 |---------|--------------|-------|--------|-----|
 | **Pulse** | `DESIGN-Monocle.md` (tokens only; report never says Monocle) | `r/<subreddit>` + window | Single-file Intelligence Brief HTML: generated title, executive briefing, activity timeline, what changed, theme landscape (volume vs engagement + heatmap), representative posts, sentiment + intent, keywords + methodology | What is happening, what is changing, and what evidence supports it (30-sec brief) |
 | **Persona** | `DESIGN-Notion.md` | `u/<author>` or `r/<sub>` sample | Single-file dossier HTML populated from V3.3 Engine Template | Debate prep or high-fidelity digital twin |
-| **Dataset** | Both (index = Monocle, dossiers = Notion) | `r/<sub>` + N users | Folder with N dossiers + `index.html` + `manifest.json` | Synthetic population for product/marketing simulation |
+| **Dataset** | Control Panel (HERMES tokens; Vega-Lite JSON) | `r/<sub>` + N users | Folder with N dossiers + `index.html` (archetypes + Vega-Lite + expandable previews + Copy JSON, local-first) + `personas.jsonl` (enriched: Big Five/quotes/arguments) | Cohort-level simulation control panel |
 | **Sample Size** | `DESIGN-Cosmos.md` | `N` + confidence + margin (+ optional `r/<sub>` + topic) | Deterministic `n` + Cosmos intelligence brief HTML | Decide how many redditors to pull — with x at y confidence and z margin, we think ... and we recommend abc. |
 | **Synthetic Survey** | `DESIGN-Cosmos.md` (report) | `personas.jsonl` + 12-Q instrument (SOP v6 grounded) | Simulated responses: `responses.jsonl/csv`, `report.html` with aggregates + Cosmos methodology box | Test positioning/messaging on a synthetic population before fielding |
 
@@ -48,7 +48,7 @@ curl -s "https://arctic-shift.photon-reddit.com/api/comments/search?author=spez&
 # -- Pulse: newspaper for a subreddit (Monocle) --
 python ~/.hermes/skills/research/reddit-intel/scripts/pulse.py --subreddit parenting --window 7d --out ./pulse-parenting.html
 python ~/.hermes/skills/research/reddit-intel/scripts/pulse.py --subreddit vietnam --limit 25 --top 5 --out ./pulse-vietnam.html
-# -- Pulse now generates a human title (no MONOCLE). Structure: Briefing → Activity → What changed → Themes → Posts → Sentiment+Intent → Keywords+Method
+# -- Pulse now generates a human title (no HERMES). Structure: Briefing → Activity → What changed → Themes → Posts → Sentiment+Intent → Keywords+Method
 
 # -- Persona: single redditor dossier (Notion) -- recommended: deepseek-v4-flash (prompt-cache + quality)
 python ~/.hermes/skills/research/reddit-intel/scripts/persona.py --author spez --limit 100 --model deepseek-v4-flash --out ./dossier-spez.html
@@ -57,6 +57,7 @@ python ~/.hermes/skills/research/reddit-intel/scripts/persona.py --author someus
 # -- Dataset: bulk synthetic population -- deepseek-v4-flash recommended; checkpoints via manifest.json
 python ~/.hermes/skills/research/reddit-intel/scripts/build_dataset.py --subreddit parenting --users 20 --comments-per-user 30 --out ./data/parenting/ --model deepseek-v4-flash --concurrency 2
 python ~/.hermes/skills/research/reddit-intel/scripts/build_dataset.py --subreddit vietnam --users 100 --comments-per-user 100 --out ./data/vietnam/ --model deepseek-v4-flash --concurrency 2
+# reindex only (no fetch): python ~/.hermes/skills/research/reddit-intel/scripts/build_dataset.py --subreddit parenting --out ./data/parenting/ --reindex-only  # backfills Big Five/quotes/arguments from dossiers
 
 # -- Sample Size: deterministic + Cosmos brief -- thin-rate aware (35% for N<500k, 25% otherwise)
 python ~/.hermes/skills/research/reddit-intel/scripts/sample_size.py --population 94000000 --confidence 99 --margin 3  # -> 1849
@@ -93,7 +94,7 @@ python ~/.hermes/skills/research/reddit-intel/scripts/synthetic_survey.py --pers
               ▼                  │                   ▼
    ┌───────────────────┐  ┌──────▼──────┐  ┌─────────────────┐
    │ Intelligence Brief│  │  Notion     │  │ Dataset Folder  │
-   │ pulse-*.html      │  │ dossier-*.html │ │ index.html (Brief)   │
+   │ pulse-*.html      │  │ dossier-*.html │ │ index.html (Control Panel)   │
    │ cream #fdfcf3     │  │ paper #f6f5f4│  │ dossiers/*.html (Notion)│
    │ Plantin serif     │  │ NotionInter │  │ manifest.json   │
    │ yellow #ffc500    │  │ accent cards│  │ personas.jsonl  │
@@ -183,7 +184,7 @@ Must match the Cost Forecast Monocle example (`example html/hermes-cost-forecast
 - **Grid:** 3-column editorial (lead post | secondary stack | sentiment/trend sidebar) collapsing to single column <900px.
 - **Single-file:** inline CSS + inline SVG, no external deps except optional `mermaid@10` for trend flowchart.
 
-Verify: open HTML offline -> masthead reads `MONOCLE · r/<sub> INTELLIGENCE` -> yellow appears <=3 places -> no shadows -> hairlines visible at 1px.
+Verify: open HTML offline -> masthead reads `HERMES · r/<sub> INTELLIGENCE` -> yellow appears <=3 places -> no shadows -> hairlines visible at 1px.
 
 ### Notion Dossier (`persona.py` -> `DESIGN-Notion.md`)
 

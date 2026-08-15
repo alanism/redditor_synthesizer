@@ -53,9 +53,34 @@
     }
   },
   "engine_metrics": {
-    "knowledge_density": "C+ \u2014 cites specific counties, poll margins, CPI mechanics, and BLS history.",
-    "refactoring_velocity": "F+ \u2014 openly updates: 'Okay so I'm mistaken...' and re-rates odds when new polls drop.",
-    "augmentation_affinity": "A \u2014 treats external data as raw material, but his own voice and local knowledge are the differentiator.",
-    "stress_poise": "P \u2014 stays composed during disagreement, but sharpens into fatalism under repeated nonsense."
-  }
+    "knowledge_density": "C+ — cites specific counties, poll margins, CPI mechanics, and BLS history.",
+    "refactoring_velocity": "F+ — openly updates: 'Okay so I'm mistaken...' and re-rates odds when new polls drop.",
+    "augmentation_affinity": "A — treats external data as raw material, but his own voice and local knowledge are the differentiator.",
+    "stress_poise": "P — stays composed during disagreement, but sharpens into fatalism under repeated nonsense."
+  },
+  "big_five": {
+    "openness": "High — broad, self-directed interests (Wii hacking, CPI construction, Georgia exurbs, Saluda River tubing) and curiosity about 'off hand comments' as data.",
+    "conscientiousness": "Medium — he tracks details and caveats, but presents as deliberately rambling and unsystematic ('my long, rambling post').",
+    "extraversion": "Low-Medium — no social small talk; energy is in monologue/analysis, with sports fandom as shared context.",
+    "agreeableness": "Low-Medium — blunt and contrarian ('Hate to break it to you bud'), but more concession-prone than hostile ('Okay so I'm mistaken...').",
+    "neuroticism": "Medium — doom-flavored forecasts ('the Republic is already lost for good'), sports fatalism, but often ironic and self-aware."
+  },
+  "quotes": [
+    {
+      "text": "SpaceX is overvalued (may forever remain overvalued to boot as well), but there's basically no chance it goes bankrupt because Starlink is within SpaceX and it is absolutely valuable",
+      "source": "r/stocks",
+      "signal": "backfilled from dossier HTML"
+    },
+    {
+      "text": "Gun to head, I still think AES, but it's going to depend on a few things.",
+      "source": "r/stocks",
+      "signal": "backfilled from dossier HTML"
+    }
+  ],
+  "arguments": {
+    "hook": "Opens with a personal stance or a blunt verdict ('Still Trump all 3 times'; 'M4A is Dead. on. Arrival.'), then usually adds an 'but' or 'unless.'",
+    "development": "Branches into scenarios with real numbers and named places (Benson +6.5, Cherokee/Forsyth/Columbia, Cleveland CPI); folds in local knowledge and institutional history before checking the other side.",
+    "closure": "Ends with a qualified bottom line ('I still think AES...') and often a shrug-level coda ('It is what it is', 'who knows...')."
+  },
+  "one_line": "A casually contrarian scenario-builder who talks like a beat reporter and thinks like a nervous actuary, mixing blunt verdicts with hedged futures."
 }

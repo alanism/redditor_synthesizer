@@ -1,8 +1,10 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><title>MONOCLE · r/stocks Dataset — 20 users</title><style>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><title>Hermes · r/stocks Dataset — 2 personas · Control Panel</title><style>
 :root{--color-signal-yellow:#ffc500;--color-folio-black:#000;--color-newsprint-cream:#fdfcf3;--color-broadsheet-white:#fff;--color-margin-white:#fdfbe4;--color-rule-gray:#d9d9d9;--color-caption-gray:#6e6e6e;--color-mute-gray:#b3b3b3;--font-plantin:'Plantin',Georgia,serif;--font-helvetica-neue:'Helvetica Neue',Inter,system-ui,sans-serif;--radius-cards:8px}
 *{box-sizing:border-box}body{margin:0;background:var(--color-newsprint-cream);color:#000;font-family:var(--font-plantin);-webkit-font-smoothing:antialiased}
+a{color:inherit}
 .utility{position:sticky;top:0;z-index:10;background:#fff;border-bottom:1px solid var(--color-rule-gray);display:flex;align-items:center;justify-content:space-between;padding:0 16px;height:40px;font-family:var(--font-helvetica-neue);font-size:13px;font-weight:700}
-.btn{appearance:none;border:1px solid #000;background:var(--color-signal-yellow);color:#000;font:700 13px/1 var(--font-helvetica-neue);padding:8px 16px;cursor:pointer}
+.select,.search{appearance:none;border:1px solid var(--color-rule-gray);background:#fff;font:500 12px/1 var(--font-helvetica-neue);padding:8px 10px;border-radius:4px}
+.search{width:220px}
 .mast{max-width:1200px;margin:0 auto;padding:20px 16px 14px;text-align:center;border-bottom:1px solid var(--color-rule-gray)}
 .mast h1{margin:0;font-size:40px;letter-spacing:-0.02em;line-height:1;font-weight:700}
 .mast .sub{margin:8px 0 0;font-family:var(--font-helvetica-neue);font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:var(--color-caption-gray)}
@@ -10,51 +12,426 @@
 .wrap{max-width:1200px;margin:0 auto;padding:0 16px}
 section{padding:24px 0;border-bottom:1px solid var(--color-rule-gray)}
 .eyebrow{font-size:13px;letter-spacing:.075em;text-transform:uppercase;font-weight:700;margin:0 0 8px}
+.eyebrow em{font-style:normal;color:var(--color-caption-gray);font-weight:400;margin-left:6px}
 .card{border:1px solid var(--color-rule-gray);background:#fff;padding:16px;border-radius:var(--radius-cards)}
+.card.warm{background:var(--color-margin-white)}
 .kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
 @media(max-width:700px){.kpi-grid{grid-template-columns:1fr 1fr}}
 .kpi{border:1px solid var(--color-rule-gray);background:#fff;padding:16px;border-radius:var(--radius-cards)}
 .kpi.yellow{background:var(--color-signal-yellow);border-color:#000}
 .kpi b{display:block;font-size:24px;letter-spacing:-0.48px}
-.mono{font-family:ui-monospace,monospace;font-size:12px}
-.pill{display:inline-block;font:500 10px/1 var(--font-helvetica-neue);letter-spacing:.06em;text-transform:uppercase;padding:3px 6px;border:1px solid var(--color-rule-gray);background:#fff}
+.mono{font-family:ui-monospace,monospace;font-size:11px}
+.pill{display:inline-block;font:500 10px/1 var(--font-helvetica-neue);letter-spacing:.06em;text-transform:uppercase;padding:3px 6px;border:1px solid var(--color-rule-gray);background:#fff;cursor:default}
 .pill.yellow{background:var(--color-signal-yellow);border-color:#000}
 .pill.black{background:#000;color:var(--color-signal-yellow);border-color:#000}
+.pill.muted{background:#eee;color:var(--color-caption-gray);border-color:var(--color-rule-gray)}
 .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
 @media(max-width:900px){.grid3{grid-template-columns:1fr 1fr}}
 @media(max-width:560px){.grid3{grid-template-columns:1fr}}
-.author-card{border:1px solid var(--color-rule-gray);background:#fff;padding:12px;border-radius:var(--radius-cards)}
-.author-card:hover{border-color:#000}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:800px){.grid2{grid-template-columns:1fr}}
+.author-card{border:1px solid var(--color-rule-gray);background:#fff;padding:12px;border-radius:var(--radius-cards);cursor:pointer}
+.author-card:hover{border-color:var(--color-caption-gray)}
+.author-card.filtered{opacity:.28;pointer-events:none}
+.author-card .head{display:flex;justify-content:space-between;align-items:center}
+.expand{border-top:1px solid var(--color-rule-gray);margin-top:10px;padding-top:10px;font-size:12px;line-height:1.5;color:var(--color-caption-gray)}
+.expand blockquote{margin:6px 0 0;border-left:3px solid var(--color-signal-yellow);padding:4px 10px;background:var(--color-margin-white);font-family:var(--font-plantin);font-size:13px;color:#000}
+.btn{appearance:none;border:1px solid #000;background:var(--color-signal-yellow);color:#000;font:700 11px/1 var(--font-helvetica-neue);letter-spacing:.06em;text-transform:uppercase;padding:6px 10px;border-radius:4px;cursor:pointer}
+.btn.ghost{background:#fff;border-color:var(--color-rule-gray)}
+.btn:active{transform:translateY(1px)}
 .footer{padding:16px;text-align:center;font:500 11px/1 var(--font-helvetica-neue);letter-spacing:.06em;text-transform:uppercase;color:var(--color-caption-gray);border-top:1px solid var(--color-rule-gray)}
+.vega-box{border:1px solid var(--color-rule-gray);background:#fff;border-radius:var(--radius-cards);padding:10px;overflow:auto}
+.note{margin:8px 0 0;font:500 11px/1 var(--font-helvetica-neue);color:var(--color-caption-gray);line-height:1.5}
+.archetype-bar{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.archetype-chip{appearance:none;border:1px solid var(--color-rule-gray);background:#fff;border-radius:9999px;padding:6px 12px;font:700 11px/1 var(--font-helvetica-neue);letter-spacing:.04em;cursor:pointer}
+.archetype-chip.active{background:#000;color:var(--color-signal-yellow);border-color:#000}
+.archetype-chip small{font-weight:500;color:var(--color-caption-gray);margin-left:4px}
+.archetype-chip.active small{color:#cbd5ff}
+.cohort-card{border-left:3px solid var(--color-signal-yellow);padding:12px;border:1px solid var(--color-rule-gray);background:#fff;border-radius:var(--radius-cards)}
+.cohort-card h4{margin:0;font:700 13px/1 var(--font-helvetica-neue);letter-spacing:.02em}
+.cohort-card p{margin:6px 0 0;font-size:12px;line-height:1.5;color:var(--color-caption-gray)}
+.cohort-card .tactic{margin-top:8px;font:700 11px/1 var(--font-helvetica-neue);letter-spacing:.05em;text-transform:uppercase;color:#000;background:var(--color-signal-yellow);border:1px solid #000;padding:4px 6px;display:inline-block}
 </style></head><body>
-<div class="utility"><div><span style="letter-spacing:.14em">MONOCLE</span> <span style="color:var(--color-mute-gray);font-weight:400">· DATASET</span> <span style="color:var(--color-mute-gray);font-weight:400">· r/stocks</span></div><div><span class="pill yellow">INDEX</span></div></div>
-<header class="mast"><h1>MONOCLE <span style="font-weight:400">· r/stocks DATASET</span></h1><div class="sub">20 authors · dossiers in Notion · index in Monocle · 15 Aug 2026 · 15:26 UTC</div>
+<div class="utility"><div><span style="letter-spacing:.14em">HERMES</span> <span style="color:var(--color-mute-gray);font-weight:400">· DATASET</span> <span style="color:var(--color-mute-gray);font-weight:400">· r/stocks</span></div><div><span class="pill yellow">CONTROL PANEL</span> <span class="pill muted">LOCAL-FIRST</span></div></div>
+<header class="mast"><h1>Hermes <span style="font-weight:400">· r/stocks synthetic population</span></h1><div class="sub">2 personas · 2 with Big Five · 1 archetypes · 15 Aug 2026 · 16:43 UTC</div>
 <div class="kicker"><span><b>27</b> dossiers</span><span><b>personas.jsonl</b> JSONL</span><span><b>dossiers/</b> HTML</span><span><b>manifest.json</b> checkpoint</span></div></header>
 <div class="wrap">
-<section><div class="eyebrow">DATASET</div><h2 style="margin:0;font-size:28px;letter-spacing:-0.5px">Synthetic population — <em style="font-style:normal;background:linear-gradient(transparent 60%,var(--color-signal-yellow) 60% 88%,transparent 88%)">r/stocks</em></h2>
-<p style="color:var(--color-caption-gray);margin:8px 0 0;max-width:68ch">Each card links to a full V3.3 Notion dossier. Use <code>personas.jsonl</code> for programmatic simulation. Re-run the same command to resume from checkpoint.</p>
-<div style="margin-top:16px"><div class="kpi-grid">
-      <div class="kpi yellow"><span style="font:700 11px/1 var(--font-helvetica-neue);letter-spacing:.06em;text-transform:uppercase;color:#000">Target users</span><b>22</b></div>
-      <div class="kpi"><span style="font:700 11px/1 var(--font-helvetica-neue);letter-spacing:.06em;text-transform:uppercase;color:var(--color-caption-gray)">Completed</span><b>27</b></div>
-      <div class="kpi"><span style="font:700 11px/1 var(--font-helvetica-neue);letter-spacing:.06em;text-transform:uppercase;color:var(--color-caption-gray)">Failed</span><b>10</b></div>
-      <div class="kpi"><span style="font:700 11px/1 var(--font-helvetica-neue);letter-spacing:.06em;text-transform:uppercase;color:var(--color-caption-gray)">Avg Engine</span><b>C4.1 F3.4 P3.3</b></div>
+<section><div class="eyebrow">CONTROL PANEL <em>· filter, inspect, copy</em></div><h2 style="margin:0;font-size:28px;letter-spacing:-0.5px"><em style="font-style:normal;background:linear-gradient(transparent 60%,var(--color-signal-yellow) 60% 88%,transparent 88%)">Interactive</em> synthetic population — r/stocks</h2>
+<p style="color:var(--color-caption-gray);margin:8px 0 0;max-width:68ch">Deterministic Engine cohorts + Vega-Lite distributions + inline previews + <b>Copy JSON</b>. Everything runs locally — filter and copy without a server.</p>
+<div style="margin-top:16px"><div class="kpi-grid" id="kpi-panel">
+      <div class="kpi yellow"><span style="font:700 11px/1 var(--font-helvetica-neue);letter-spacing:.06em;text-transform:uppercase;color:#000">Target</span><b>22</b><span style="font:700 10px/1 var(--font-helvetica-neue);letter-spacing:.06em;text-transform:uppercase;color:#000">r/stocks</span></div>
+      <div class="kpi"><span style="font:700 11px/1 var(--font-helvetica-neue);letter-spacing:.06em;text-transform:uppercase;color:var(--color-caption-gray)">Completed</span><b>27</b><span class="mono" style="color:var(--color-caption-gray)">2 enriched</span></div>
+      <div class="kpi"><span style="font:700 11px/1 var(--font-helvetica-neue);letter-spacing:.06em;text-transform:uppercase;color:var(--color-caption-gray)">Failed / thin</span><b>10</b><span class="mono" style="color:var(--color-caption-gray)">resume-safe</span></div>
+      <div class="kpi"><span style="font:700 11px/1 var(--font-helvetica-neue);letter-spacing:.06em;text-transform:uppercase;color:var(--color-caption-gray)">Avg Engine</span><b style="font-size:16px">C4.0 F3.5 P3.0</b><span class="mono" style="color:var(--color-caption-gray)">C/F/P means</span></div>
     </div></div>
-<div class="card" style="margin-top:12px"><div class="eyebrow">Failed</div><ul class="mono" style="margin:6px 0 0;padding-left:16px"><li>u/Yee4614 — HTTP Error 422: Unprocessable Entity</li><li>u/Unable-Bathroom8957 — only 5 comments (&lt;20)</li><li>u/Unable-Bathroom8957 — only 5 comments (&lt;20)</li><li>u/GrumpyOutsider — The read operation timed out</li><li>u/Unable-Bathroom8957 — only 5 comments (&lt;20)</li><li>u/GrumpyOutsider — only 18 comments (&lt;20)</li><li>u/Unable-Bathroom8957 — only 5 comments (&lt;20)</li><li>u/GrumpyOutsider — The read operation timed out</li><li>u/Unable-Bathroom8957 — only 5 comments (&lt;20)</li><li>u/GrumpyOutsider — only 18 comments (&lt;20)</li></ul></div>
+<div class="card" style="margin-top:12px"><div style="font:700 11px/1 var(--font-helvetica-neue);letter-spacing:.06em;text-transform:uppercase;color:var(--color-caption-gray)">Failed / thin</div><ul class="mono" style="margin:6px 0 0;padding-left:16px"><li>u/Yee4614 — HTTP Error 422: Unprocessable Entity</li><li>u/Unable-Bathroom8957 — only 5 comments (&lt;20)</li><li>u/Unable-Bathroom8957 — only 5 comments (&lt;20)</li><li>u/GrumpyOutsider — The read operation timed out</li><li>u/Unable-Bathroom8957 — only 5 comments (&lt;20)</li><li>u/GrumpyOutsider — only 18 comments (&lt;20)</li><li>u/Unable-Bathroom8957 — only 5 comments (&lt;20)</li><li>u/GrumpyOutsider — The read operation timed out</li><li>u/Unable-Bathroom8957 — only 5 comments (&lt;20)</li><li>u/GrumpyOutsider — only 18 comments (&lt;20)</li></ul></div>
 </section>
-<section><div class="eyebrow">DOSSIERS <em>· click to open</em></div>
-<div class="grid3"><a href="dossiers/u_1foxyboi.html" target="_blank" rel="noopener" style="text-decoration:none;color:inherit"><div class="author-card"><div style="font:700 11px/1 var(--font-helvetica-neue);letter-spacing:.06em;text-transform:uppercase;color:var(--color-caption-gray)">u/1foxyboi</div><div style="font-size:14px;font-weight:700;margin-top:6px">C+ F~ A1+ A2~ P-</div><div class="mono" style="color:var(--color-caption-gray);margin-top:4px">30 comments</div><div style="margin-top:6px"><span class="pill yellow">dossier →</span></div></div></a><a href="dossiers/u_95Daphne.html" target="_blank" rel="noopener" style="text-decoration:none;color:inherit"><div class="author-card"><div style="font:700 11px/1 var(--font-helvetica-neue);letter-spacing:.06em;text-transform:uppercase;color:var(--color-caption-gray)">u/95Daphne</div><div style="font-size:14px;font-weight:700;margin-top:6px">C+ F+ A1+ A2~ P+</div><div class="mono" style="color:var(--color-caption-gray);margin-top:4px">30 comments</div><div style="margin-top:6px"><span class="pill yellow">dossier →</span></div></div></a><a href="dossiers/u_Brewmentationator.html" target="_blank" rel="noopener" style="text-decoration:none;color:inherit"><div class="author-card"><div style="font:700 11px/1 var(--font-helvetica-neue);letter-spacing:.06em;text-transform:uppercase;color:var(--color-caption-gray)">u/Brewmentationator</div><div style="font-size:14px;font-weight:700;margin-top:6px">C+ F+ A1~ A2~ P+</div><div class="mono" style="color:var(--color-caption-gray);margin-top:4px">30 comments</div><div style="margin-top:6px"><span class="pill yellow">dossier →</span></div></div></a><a href="dossiers/u_IceShaver.html" target="_blank" rel="noopener" style="text-decoration:none;color:inherit"><div class="author-card"><div style="font:700 11px/1 var(--font-helvetica-neue);letter-spacing:.06em;text-transform:uppercase;color:var(--color-caption-gray)">u/IceShaver</div><div style="font-size:14px;font-weight:700;margin-top:6px">—</div><div class="mono" style="color:var(--color-caption-gray);margin-top:4px">30 comments</div><div style="margin-top:6px"><span class="pill yellow">dossier →</span></div></div></a><a href="dossiers/u_Illustrious-Boss9356.html" target="_blank" rel="noopener" style="text-decoration:none;color:inherit"><div class="author-card"><div style="font:700 11px/1 var(--font-helvetica-neue);letter-spacing:.06em;text-transform:uppercase;color:var(--color-caption-gray)">u/Illustrious-Boss9356</div><div style="font-size:14px;font-weight:700;margin-top:6px">C+ F~ A1+ A2- P+</div><div class="mono" style="color:var(--color-caption-gray);margin-top:4px">30 comments</div><div style="margin-top:6px"><span class="pill yellow">dossier →</span></div></div></a><a href="dossiers/u_IllustriousGas8850.html" target="_blank" rel="noopener" style="text-decoration:none;color:inherit"><div class="author-card"><div style="font:700 11px/1 var(--font-helvetica-neue);letter-spacing:.06em;text-transform:uppercase;color:var(--color-caption-gray)">u/IllustriousGas8850</div><div style="font-size:14px;font-weight:700;margin-top:6px">C+ F~ A1+ A2- P+</div><div class="mono" style="color:var(--color-caption-gray);margin-top:4px">30 comments</div><div style="margin-top:6px"><span class="pill yellow">dossier →</span></div></div></a><a href="dossiers/u_JustBrowsinAndVibin.html" target="_blank" rel="noopener" style="text-decoration:none;color:inherit"><div class="author-card"><div style="font:700 11px/1 var(--font-helvetica-neue);letter-spacing:.06em;text-transform:uppercase;color:var(--color-caption-gray)">u/JustBrowsinAndVibin</div><div style="font-size:14px;font-weight:700;margin-top:6px">C+ F~ A1+ A2- P~</div><div class="mono" style="color:var(--color-caption-gray);margin-top:4px">30 comments</div><div style="margin-top:6px"><span class="pill yellow">dossier →</span></div></div></a><a href="dossiers/u_Ok-Adeptness-5834.html" target="_blank" rel="noopener" style="text-decoration:none;color:inherit"><div class="author-card"><div style="font:700 11px/1 var(--font-helvetica-neue);letter-spacing:.06em;text-transform:uppercase;color:var(--color-caption-gray)">u/Ok-Adeptness-5834</div><div style="font-size:14px;font-weight:700;margin-top:6px">C+ F~ A1+ A2~ P~</div><div class="mono" style="color:var(--color-caption-gray);margin-top:4px">30 comments</div><div style="margin-top:6px"><span class="pill yellow">dossier →</span></div></div></a><a href="dossiers/u_Pete_The_Pilot.html" target="_blank" rel="noopener" style="text-decoration:none;color:inherit"><div class="author-card"><div style="font:700 11px/1 var(--font-helvetica-neue);letter-spacing:.06em;text-transform:uppercase;color:var(--color-caption-gray)">u/Pete_The_Pilot</div><div style="font-size:14px;font-weight:700;margin-top:6px">—</div><div class="mono" style="color:var(--color-caption-gray);margin-top:4px">30 comments</div><div style="margin-top:6px"><span class="pill yellow">dossier →</span></div></div></a><a href="dossiers/u_Sad-Smoke-2229.html" target="_blank" rel="noopener" style="text-decoration:none;color:inherit"><div class="author-card"><div style="font:700 11px/1 var(--font-helvetica-neue);letter-spacing:.06em;text-transform:uppercase;color:var(--color-caption-gray)">u/Sad-Smoke-2229</div><div style="font-size:14px;font-weight:700;margin-top:6px">C+ F~ A1~ A2~ P-</div><div class="mono" style="color:var(--color-caption-gray);margin-top:4px">30 comments</div><div style="margin-top:6px"><span class="pill yellow">dossier →</span></div></div></a><a href="dossiers/u_Scott7894.html" target="_blank" rel="noopener" style="text-decoration:none;color:inherit"><div class="author-card"><div style="font:700 11px/1 var(--font-helvetica-neue);letter-spacing:.06em;text-transform:uppercase;color:var(--color-caption-gray)">u/Scott7894</div><div style="font-size:14px;font-weight:700;margin-top:6px">—</div><div class="mono" style="color:var(--color-caption-gray);margin-top:4px">30 comments</div><div style="margin-top:6px"><span class="pill yellow">dossier →</span></div></div></a><a href="dossiers/u_TimeTravelingChris.html" target="_blank" rel="noopener" style="text-decoration:none;color:inherit"><div class="author-card"><div style="font:700 11px/1 var(--font-helvetica-neue);letter-spacing:.06em;text-transform:uppercase;color:var(--color-caption-gray)">u/TimeTravelingChris</div><div style="font-size:14px;font-weight:700;margin-top:6px">C+ F+ A1+ A2- P~</div><div class="mono" style="color:var(--color-caption-gray);margin-top:4px">30 comments</div><div style="margin-top:6px"><span class="pill yellow">dossier →</span></div></div></a><a href="dossiers/u_Wowmuchrya.html" target="_blank" rel="noopener" style="text-decoration:none;color:inherit"><div class="author-card"><div style="font:700 11px/1 var(--font-helvetica-neue);letter-spacing:.06em;text-transform:uppercase;color:var(--color-caption-gray)">u/Wowmuchrya</div><div style="font-size:14px;font-weight:700;margin-top:6px">C+ F+ A1+ A2~ P+</div><div class="mono" style="color:var(--color-caption-gray);margin-top:4px">30 comments</div><div style="margin-top:6px"><span class="pill yellow">dossier →</span></div></div></a><a href="dossiers/u_Yee4614.html" target="_blank" rel="noopener" style="text-decoration:none;color:inherit"><div class="author-card"><div style="font:700 11px/1 var(--font-helvetica-neue);letter-spacing:.06em;text-transform:uppercase;color:var(--color-caption-gray)">u/Yee4614</div><div style="font-size:14px;font-weight:700;margin-top:6px">C+ F~ A1+ A2~ P-</div><div class="mono" style="color:var(--color-caption-gray);margin-top:4px">30 comments</div><div style="margin-top:6px"><span class="pill yellow">dossier →</span></div></div></a><a href="dossiers/u_anotherloserhere.html" target="_blank" rel="noopener" style="text-decoration:none;color:inherit"><div class="author-card"><div style="font:700 11px/1 var(--font-helvetica-neue);letter-spacing:.06em;text-transform:uppercase;color:var(--color-caption-gray)">u/anotherloserhere</div><div style="font-size:14px;font-weight:700;margin-top:6px">C+ F~ A1++ A2+ P~</div><div class="mono" style="color:var(--color-caption-gray);margin-top:4px">30 comments</div><div style="margin-top:6px"><span class="pill yellow">dossier →</span></div></div></a><a href="dossiers/u_dritu_.html" target="_blank" rel="noopener" style="text-decoration:none;color:inherit"><div class="author-card"><div style="font:700 11px/1 var(--font-helvetica-neue);letter-spacing:.06em;text-transform:uppercase;color:var(--color-caption-gray)">u/dritu_</div><div style="font-size:14px;font-weight:700;margin-top:6px">C+ F+ A1+ A2~ P~</div><div class="mono" style="color:var(--color-caption-gray);margin-top:4px">30 comments</div><div style="margin-top:6px"><span class="pill yellow">dossier →</span></div></div></a><a href="dossiers/u_ga643953.html" target="_blank" rel="noopener" style="text-decoration:none;color:inherit"><div class="author-card"><div style="font:700 11px/1 var(--font-helvetica-neue);letter-spacing:.06em;text-transform:uppercase;color:var(--color-caption-gray)">u/ga643953</div><div style="font-size:14px;font-weight:700;margin-top:6px">C+ F+ A1+ A2~ P+</div><div class="mono" style="color:var(--color-caption-gray);margin-top:4px">30 comments</div><div style="margin-top:6px"><span class="pill yellow">dossier →</span></div></div></a><a href="dossiers/u_hardware2win.html" target="_blank" rel="noopener" style="text-decoration:none;color:inherit"><div class="author-card"><div style="font:700 11px/1 var(--font-helvetica-neue);letter-spacing:.06em;text-transform:uppercase;color:var(--color-caption-gray)">u/hardware2win</div><div style="font-size:14px;font-weight:700;margin-top:6px">C+ F+ A1+ A2~ P+</div><div class="mono" style="color:var(--color-caption-gray);margin-top:4px">30 comments</div><div style="margin-top:6px"><span class="pill yellow">dossier →</span></div></div></a><a href="dossiers/u_hofmann419.html" target="_blank" rel="noopener" style="text-decoration:none;color:inherit"><div class="author-card"><div style="font:700 11px/1 var(--font-helvetica-neue);letter-spacing:.06em;text-transform:uppercase;color:var(--color-caption-gray)">u/hofmann419</div><div style="font-size:14px;font-weight:700;margin-top:6px">—</div><div class="mono" style="color:var(--color-caption-gray);margin-top:4px">30 comments</div><div style="margin-top:6px"><span class="pill yellow">dossier →</span></div></div></a><a href="dossiers/u_likwitsnake.html" target="_blank" rel="noopener" style="text-decoration:none;color:inherit"><div class="author-card"><div style="font:700 11px/1 var(--font-helvetica-neue);letter-spacing:.06em;text-transform:uppercase;color:var(--color-caption-gray)">u/likwitsnake</div><div style="font-size:14px;font-weight:700;margin-top:6px">C+ F~ A1+ A2- P+</div><div class="mono" style="color:var(--color-caption-gray);margin-top:4px">30 comments</div><div style="margin-top:6px"><span class="pill yellow">dossier →</span></div></div></a><a href="dossiers/u_dritu_.html" target="_blank" rel="noopener" style="text-decoration:none;color:inherit"><div class="author-card"><div style="font:700 11px/1 var(--font-helvetica-neue);letter-spacing:.06em;text-transform:uppercase;color:var(--color-caption-gray)">u/dritu_</div><div style="font-size:14px;font-weight:700;margin-top:6px">C+ F~ A1+ A2~ P+</div><div class="mono" style="color:var(--color-caption-gray);margin-top:4px">30 comments</div><div style="margin-top:6px"><span class="pill yellow">dossier →</span></div></div></a></div>
-<p style="margin-top:12px;font:500 11px/1 var(--font-helvetica-neue);color:var(--color-caption-gray)">Showing 21 of 21 dossiers. Raw JSONL at <code>personas.jsonl</code>.</p>
+<section><div class="eyebrow">ARCHETYPES <em>· deterministic · Engine C/F/A1/A2/P → filter cohorts</em></div>
+<p style="color:var(--color-caption-gray);margin:0 0 8px;max-width:68ch;font-size:13px;line-height:1.5">Grouped locally by Engine scores (not LLM-clustered). LLMs only polish the summary lines. Click an archetype to filter the grid below.</p>
+<div class="archetype-bar" id="archetype-bar" role="tablist" aria-label="Archetypes"><button class="archetype-chip active" data-cohort="all" role="tab" aria-selected="true">All <small>2</small></button><button class="archetype-chip" data-cohort="A" role="tab" aria-selected="false" style="border-left:4px solid #ffc500">High-Context Analysts <small>2</small></button></div>
+<div class="grid2" style="margin-top:12px"><div class="cohort-card" data-cohort-card="A" style="border-left-color:#ffc500">
+          <h4><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#ffc500;border:1px solid #000;vertical-align:middle;margin-right:6px"></span>High-Context Analysts <span style="font-weight:400;color:var(--color-caption-gray)">· 2 personas</span></h4>
+          <p style="font:700 10px/1 var(--font-helvetica-neue);letter-spacing:.05em;text-transform:uppercase;color:var(--color-caption-gray);margin-top:6px">C+ / F+ — high knowledge density + reframing</p>
+          <p style="margin-top:6px;color:var(--color-caption-gray)">e.g. 1foxyboi, 95Daphne</p>
+          <div class="tactic">Lead with base rates + mechanism; they respect density and will punish hand-waving.</div>
+          <p class="note" style="margin-top:8px">Deterministic grouping by Engine (C/F/A/P) — not LLM-clustered. Summaries are LLM-polished when a key is present, otherwise the tactic above is the deterministic fallback.</p>
+        </div></div>
+</section>
+<section><div class="eyebrow">POPULATION MAP <em>· declarative Vega-Lite — agent-parseable</em></div>
+
+    <div class="grid2" style="margin-top:12px">
+      <div class="vega-box" id="vega-engine-histogram">
+        <div style="font:700 11px/1 var(--font-helvetica-neue);letter-spacing:.06em;text-transform:uppercase;color:var(--color-caption-gray)">Engine distributions (C · F · P)</div>
+        <div id="vega-hist" style="margin-top:8px;min-height:120px"></div>
+        <p class="note">Declarative Vega-Lite spec — agent-parseable. Faceted histogram (scores 0-5). Use to spot bias (e.g. all P=4 or no F≥4).</p>
+        <details><summary class="mono" style="cursor:pointer">Show Vega-Lite JSON</summary><pre class="mono" style="margin:8px 0 0;white-space:pre-wrap;word-break:break-word;background:var(--color-margin-white);padding:8px;border-radius:4px;max-height:260px;overflow:auto" id="vega-hist-json">{
+  "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+  "description": "Engine score distributions (C/F/P 0-5)",
+  "data": {
+    "values": [
+      {
+        "axis": "C",
+        "score": 4,
+        "author": "1foxyboi"
+      },
+      {
+        "axis": "F",
+        "score": 3,
+        "author": "1foxyboi"
+      },
+      {
+        "axis": "P",
+        "score": 2,
+        "author": "1foxyboi"
+      },
+      {
+        "axis": "C",
+        "score": 4,
+        "author": "95Daphne"
+      },
+      {
+        "axis": "F",
+        "score": 4,
+        "author": "95Daphne"
+      },
+      {
+        "axis": "P",
+        "score": 4,
+        "author": "95Daphne"
+      }
+    ]
+  },
+  "facet": {
+    "field": "axis",
+    "type": "nominal",
+    "columns": 3,
+    "title": null
+  },
+  "spec": {
+    "mark": {
+      "type": "bar",
+      "color": "#ffc500",
+      "stroke": "#000",
+      "strokeWidth": 1
+    },
+    "encoding": {
+      "x": {
+        "field": "score",
+        "type": "ordinal",
+        "title": "Score (0-5)",
+        "axis": {
+          "values": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5
+          ]
+        }
+      },
+      "y": {
+        "aggregate": "count",
+        "type": "quantitative",
+        "title": "Personas"
+      }
+    }
+  },
+  "config": {
+    "view": {
+      "stroke": "transparent"
+    }
+  },
+  "width": 140,
+  "height": 90
+}</pre></details>
+      </div>
+      <div class="vega-box" id="vega-bigfive-scatter">
+        <div style="font:700 11px/1 var(--font-helvetica-neue);letter-spacing:.06em;text-transform:uppercase;color:var(--color-caption-gray)">Population map — Agreeableness × Openness</div>
+        <div id="vega-scatter" style="margin-top:8px;min-height:220px"></div>
+        <p class="note">Scatter of Big Five where available (2/2 with Big Five). Colored by Archetype. Missing Big Five (heuristic rows) are excluded — not interpolated.</p>
+        <details><summary class="mono" style="cursor:pointer">Show Vega-Lite JSON</summary><pre class="mono" style="margin:8px 0 0;white-space:pre-wrap;word-break:break-word;background:var(--color-margin-white);padding:8px;border-radius:4px;max-height:260px;overflow:auto" id="vega-scatter-json">{
+  "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+  "description": "Big Five: Agreeableness vs Openness (numeric 1=Low 2=Med 3=High, inferred)",
+  "data": {
+    "values": [
+      {
+        "agreeableness": 1,
+        "openness": 2,
+        "author": "1foxyboi",
+        "cohort": "A",
+        "signature": "C+ F~ A1+ A2~ P-"
+      },
+      {
+        "agreeableness": 2,
+        "openness": 3,
+        "author": "95Daphne",
+        "cohort": "A",
+        "signature": "C+ F+ A1+ A2~ P+"
+      }
+    ]
+  },
+  "mark": {
+    "type": "point",
+    "filled": true,
+    "size": 80,
+    "stroke": "#000",
+    "strokeWidth": 1
+  },
+  "encoding": {
+    "x": {
+      "field": "agreeableness",
+      "type": "quantitative",
+      "title": "Agreeableness (1 Low \u2192 3 High)",
+      "scale": {
+        "domain": [
+          0.7,
+          3.3
+        ]
+      }
+    },
+    "y": {
+      "field": "openness",
+      "type": "quantitative",
+      "title": "Openness (1 Low \u2192 3 High)",
+      "scale": {
+        "domain": [
+          0.7,
+          3.3
+        ]
+      }
+    },
+    "color": {
+      "field": "cohort",
+      "type": "nominal",
+      "title": "Archetype",
+      "scale": {
+        "domain": [
+          "A",
+          "B",
+          "C",
+          "D",
+          "E"
+        ],
+        "range": [
+          "#ffc500",
+          "#111",
+          "#62aef0",
+          "#f64932",
+          "#e7e7e7"
+        ]
+      }
+    },
+    "tooltip": [
+      {
+        "field": "author"
+      },
+      {
+        "field": "signature"
+      },
+      {
+        "field": "cohort"
+      }
+    ]
+  },
+  "width": 320,
+  "height": 220
+}</pre></details>
+      </div>
+    </div>
+    
+<div class="card warm" style="margin-top:12px">
+      <div style="font:700 11px/1 var(--font-helvetica-neue);letter-spacing:.06em;text-transform:uppercase;color:var(--color-caption-gray)">Local-first — no server required</div>
+      <p style="margin:8px 0 0;font-size:13px;line-height:1.6">All filtering, cohort selection, and Copy JSON happen client-side from the embedded <code>personas</code> payload (2 rows). No round-trip. For 500+ personas, compile the same <code>personas.jsonl</code> to SQLite and query it from a lightweight React bundle — schema is the JSONL keys below.</p>
+      <pre class="mono" style="margin:8px 0 0;white-space:pre-wrap;background:var(--color-broadsheet-white);padding:8px;border-radius:4px;border:1px solid var(--color-rule-gray)"># SQLite path (future-proof for 500+)
+python -c "import json, sqlite3; con=sqlite3.connect('personas.db'); con.execute('create table if not exists personas (author text primary key, engine text, big_five text, one_line text)'); [con.execute('insert or replace into personas values (?,?,?,?)', (j['author'], json.dumps(j.get('engine')), json.dumps(j.get('big_five')), j.get('one_line'))) for j in map(json.loads, open('personas.jsonl'))]; con.commit()"
+# React: SELECT * FROM personas WHERE json_extract(engine,'$.C') >= 4</pre>
+      <p class="note">Layout intents validated: all 8 intents ✓ (kpi, archetype_bar, vega_spec×2, persona_card, expandable_row, copy_payload, search_filter) — see <code>validate_layout_intent()</code>.</p>
+    </div>
+</section>
+<section><div class="eyebrow">PERSONAS <em>· 2 personas · expand for quote & argument · Copy JSON for simulation</em></div>
+<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:14px" id="search-filter">
+      <input class="search" id="searchInput" placeholder="Filter by author, signature, quote…" aria-label="Filter personas" />
+      <select class="select" id="sortSelect" aria-label="Sort personas">
+        <option value="author">Sort: author A→Z</option>
+        <option value="engine_c">Sort: Engine C ↓</option>
+        <option value="engine_p">Sort: Engine P ↓</option>
+        <option value="comments">Sort: comments ↓</option>
+        <option value="cohort">Sort: Archetype</option>
+      </select>
+      <button class="btn ghost" id="expandAll">Expand all</button>
+      <button class="btn ghost" id="collapseAll">Collapse</button>
+      <span class="mono" id="visibleCount" style="color:var(--color-caption-gray)"></span>
+    </div>
+<div class="grid3" id="persona-card-grid" style="margin-top:14px"><div class="author-card" data-author="1foxyboi" data-cohort="A" data-search="1foxyboi c+ f~ a1+ a2~ p- cheering a 0.3% day while you&#x27;re down 50% is cope because it&#x27;s cherry picking a number small enough to feel good about while ignoring the number that actually matters. a sharp, meme-armed retail skeptic who can break down iridium bid math in one comment and mock the whole subreddit in the next — but whose deadpan cracks the mo blunt contrarian verdict or mocking question that names the cope immediately." data-engine-c="4" data-engine-p="2" data-comments="30" style="border-left:4px solid #ffc500">
+          <div class="head">
+            <div>
+              <div style="font:700 11px/1 var(--font-helvetica-neue);letter-spacing:.06em;text-transform:uppercase;color:var(--color-caption-gray)">u/1foxyboi <span class="pill muted" style="margin-left:6px;border-left:3px solid #ffc500">A</span></div>
+              <div style="font-size:13px;font-weight:700;margin-top:6px">C+ F~ A1+ A2~ P-</div>
+              <div class="mono" style="color:var(--color-caption-gray);margin-top:4px">30 comments · A sharp, meme-armed retail skeptic who can break down Iridium bid math in one comment and mock the whole subreddit in the next — but whose deadpan cracks the mo</div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:6px;align-items:end">
+              <a href="dossiers/u_1foxyboi.html" target="_blank" rel="noopener" class="pill yellow" style="text-decoration:none">dossier →</a>
+              <button class="btn ghost" data-copy-payload='{&quot;author&quot;: &quot;1foxyboi&quot;, &quot;engine&quot;: {&quot;C&quot;: 4, &quot;F&quot;: 3, &quot;A1&quot;: 4, &quot;A2&quot;: 3, &quot;P&quot;: 2, &quot;signature&quot;: &quot;C+ F~ A1+ A2~ P-&quot;, &quot;envelope_strong&quot;: &quot;A tight, meme-fluent contrarian who can do per-share dilution math in one comment and weaponize a clown emoji in the next.&quot;, &quot;envelope_fragile&quot;: &quot;A -50% drawdown leaks through the deadpan — &#x27;Why must you hurt me&#x27; — and confidence dissolves into &#x27;I just don&#x27;t get the market this year.&#x27;&quot;, &quot;failure_modes&quot;: [&quot;Dismisses valid nuance with one-word verdicts (&#x27;Ok&#x27;, &#x27;Don&#x27;t&#x27;, &#x27;🤡&#x27;) when the thread doesn&#x27;t match his frame.&quot;, &quot;Confuses his own conviction with analysis — &#x27;Huh? I said you&#x27;re objectively wrong we will have $250&#x27; — then flips to confusion when price disagrees.&quot;, &quot;Community glue (&#x27;I&#x27;d put half in rocket lab&#x27;) fuses identity to the position, blocking any real thesis reassessment.&quot;], &quot;anchors&quot;: {&quot;C&quot;: &quot;Paying in stock is also diluting.&quot;, &quot;F&quot;: &quot;Ok&quot;, &quot;A1&quot;: &quot;This gets 20 upvotes but anime girls get -20 is actually a crime&quot;, &quot;A2&quot;: &quot;cherry picking a number small enough to feel good about&quot;, &quot;P&quot;: &quot;I just don&#x27;t get the market this year&quot;}}, &quot;big_five&quot;: {&quot;openness&quot;: &quot;Med — &#x27;next RKLB ticker, doesn&#x27;t have to be space&#x27; shows breadth, but every path still loops back to RKLB.&quot;, &quot;conscientiousness&quot;: &quot;Med — does real homework on fairness opinions and ATM dilution, yet the posting pattern is a fragmented, emotive reaction log.&quot;, &quot;extraversion&quot;: &quot;Low-Med — seeks communal crowning (&#x27;come back here to be crowned by my people&#x27;) but never converses, only delivers verdicts.&quot;, &quot;agreeableness&quot;: &quot;Low — &#x27;This is absolutely cope&#x27; and &#x27;that&#x27;s such stupid logic&#x27; are his openers; &#x27;Fair enough&#x27; is his rarest concession.&quot;, &quot;neuroticism&quot;: &quot;Med-High — under the deadpan, the drawdown is personal: &#x27;Why must you hurt me&#x27; and &#x27;I just don&#x27;t get the market this year.&#x27;&quot;}, &quot;persona_stack&quot;: {&quot;MBTI&quot;: {&quot;type&quot;: &quot;ISTP&quot;, &quot;weight&quot;: 0.55}, &quot;PRISM&quot;: {&quot;type&quot;: &quot;FXMC&quot;, &quot;weight&quot;: 0.7}, &quot;QuEST&quot;: {&quot;type&quot;: &quot;QDVF&quot;, &quot;weight&quot;: 0.75}, &quot;RealityLens&quot;: {&quot;type&quot;: &quot;D-M-F-Ob&quot;, &quot;weight&quot;: 0.68}, &quot;CauseCraft&quot;: {&quot;type&quot;: &quot;T-H-G-X&quot;, &quot;weight&quot;: 0.85}, &quot;ProofPurpose&quot;: {&quot;type&quot;: &quot;Ex-Fo-Pr-Be&quot;, &quot;weight&quot;: 0.7}, &quot;ENGINE&quot;: {&quot;type&quot;: &quot;C+F+AP&quot;, &quot;weight&quot;: 0.92}}, &quot;engine_metrics&quot;: null, &quot;quotes&quot;: [{&quot;text&quot;: &quot;Cheering a 0.3% day while you&#x27;re down 50% is cope because it&#x27;s cherry picking a number small enough to feel good about while ignoring the number that actually matters.&quot;, &quot;source&quot;: &quot;r/stocks&quot;, &quot;signal&quot;: &quot;backfilled from dossier HTML&quot;}, {&quot;text&quot;: &quot;We had an atm and that&#x27;s diluting us to generate cash. Whatever we don&#x27;t pay to iridium in cash, we have to pay in stock. Paying in stock is also diluting.&quot;, &quot;source&quot;: &quot;r/stocks&quot;, &quot;signal&quot;: &quot;backfilled from dossier HTML&quot;}], &quot;arguments&quot;: {&quot;hook&quot;: &quot;Blunt contrarian verdict or mocking question that names the cope immediately.&quot;, &quot;development&quot;: &quot;Short causal chain built on observable numbers (5-day chart, % from ATH, per-share dilution) and named actors (Iridium advisors, SPB leadership).&quot;, &quot;closure&quot;: &quot;A one-line kill shot — either a definitional verdict (&#x27;That&#x27;s the definition of cope&#x27;) or a communal meme that ends the thread.&quot;}, &quot;one_line&quot;: &quot;A sharp, meme-armed retail skeptic who can break down Iridium bid math in one comment and mock the whole subreddit in the next — but whose deadpan cracks the moment RKLB drops another percent.&quot;}' id="copy-payload" aria-label="Copy JSON for u/1foxyboi">Copy JSON</button>
+            </div>
+          </div>
+          <details class="expand" id="expandable-row"><summary style="cursor:pointer;font:700 11px/1 var(--font-helvetica-neue);letter-spacing:.06em;text-transform:uppercase;color:var(--color-caption-gray)">Preview — quote & argument</summary>
+            <blockquote>“Cheering a 0.3% day while you're down 50% is cope because it's cherry picking a number small enough to feel good about while ignoring the number that actually matters.” <span class="mono" style="color:var(--color-caption-gray)">— r/stocks</span></blockquote>
+            <p style="margin:8px 0 0"><b>Hook:</b> Blunt contrarian verdict or mocking question that names the cope immediately.</p>
+            <p style="margin:8px 0 0" class="mono">Full rubric in <code>personas.jsonl</code> and the Copy JSON payload — paste directly into a simulation prompt.</p>
+          </details>
+        </div><div class="author-card" data-author="95Daphne" data-cohort="A" data-search="95daphne c+ f+ a1+ a2~ p+ spacex is overvalued (may forever remain overvalued to boot as well), but there&#x27;s basically no chance it goes bankrupt because starlink is within spacex and it is absolutely valuab a casually contrarian scenario-builder who talks like a beat reporter and thinks like a nervous actuary, mixing blunt verdicts with hedged futures. opens with a personal stance or a blunt verdict (&#x27;still trump all 3 times&#x27;; &#x27;m4a is dead. on. arrival.&#x27;), then usually adds an &#x27;but&#x27; or &#x27;unless.&#x27;" data-engine-c="4" data-engine-p="4" data-comments="30" style="border-left:4px solid #ffc500">
+          <div class="head">
+            <div>
+              <div style="font:700 11px/1 var(--font-helvetica-neue);letter-spacing:.06em;text-transform:uppercase;color:var(--color-caption-gray)">u/95Daphne <span class="pill muted" style="margin-left:6px;border-left:3px solid #ffc500">A</span></div>
+              <div style="font-size:13px;font-weight:700;margin-top:6px">C+ F+ A1+ A2~ P+</div>
+              <div class="mono" style="color:var(--color-caption-gray);margin-top:4px">30 comments · A casually contrarian scenario-builder who talks like a beat reporter and thinks like a nervous actuary, mixing blunt verdicts with hedged futures.</div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:6px;align-items:end">
+              <a href="dossiers/u_95Daphne.html" target="_blank" rel="noopener" class="pill yellow" style="text-decoration:none">dossier →</a>
+              <button class="btn ghost" data-copy-payload='{&quot;author&quot;: &quot;95Daphne&quot;, &quot;engine&quot;: {&quot;C&quot;: 4, &quot;F&quot;: 4, &quot;A1&quot;: 4, &quot;A2&quot;: 2, &quot;P&quot;: 4, &quot;signature&quot;: &quot;C+ F+ A1+ A2~ P+&quot;, &quot;envelope_strong&quot;: &quot;Confident, colorful, conditional: can say &#x27;Dead. on. Arrival.&#x27; and &#x27;it&#x27;s going to depend on a few things&#x27; in the same breath.&quot;, &quot;envelope_fragile&quot;: &quot;Over-hedging can make a clear verdict feel like a shrug: &#x27;Gun to head, I still think AES&#x27; immediately followed by &#x27;but it&#x27;s going to depend on a few things.&#x27;&quot;, &quot;failure_modes&quot;: [&quot;Over-qualifies until the point evaporates&quot;, &quot;Fatalistic one-liners can read as dismissive&quot;, &quot;Rambling asides bury the lede&quot;], &quot;anchors&quot;: {&quot;C&quot;: &quot;M4A is Dead. on. Arrival.&quot;, &quot;F&quot;: &quot;it&#x27;s going to depend on a few things&quot;, &quot;A1&quot;: &quot;This is AOC and it&#x27;s really not even close.&quot;, &quot;A2&quot;: &quot;Definitely watching.&quot;, &quot;P&quot;: &quot;word &#x27;round the block&quot;}}, &quot;big_five&quot;: {&quot;openness&quot;: &quot;High — broad, self-directed interests (Wii hacking, CPI construction, Georgia exurbs, Saluda River tubing) and curiosity about &#x27;off hand comments&#x27; as data.&quot;, &quot;conscientiousness&quot;: &quot;Medium — he tracks details and caveats, but presents as deliberately rambling and unsystematic (&#x27;my long, rambling post&#x27;).&quot;, &quot;extraversion&quot;: &quot;Low-Medium — no social small talk; energy is in monologue/analysis, with sports fandom as shared context.&quot;, &quot;agreeableness&quot;: &quot;Low-Medium — blunt and contrarian (&#x27;Hate to break it to you bud&#x27;), but more concession-prone than hostile (&#x27;Okay so I&#x27;m mistaken...&#x27;).&quot;, &quot;neuroticism&quot;: &quot;Medium — doom-flavored forecasts (&#x27;the Republic is already lost for good&#x27;), sports fatalism, but often ironic and self-aware.&quot;}, &quot;persona_stack&quot;: {&quot;MBTI&quot;: {&quot;type&quot;: &quot;INTP&quot;, &quot;weight&quot;: 0.88}, &quot;PRISM&quot;: {&quot;type&quot;: &quot;FXMC&quot;, &quot;weight&quot;: 0.82}, &quot;QuEST&quot;: {&quot;type&quot;: &quot;QDVF&quot;, &quot;weight&quot;: 0.85}, &quot;RealityLens&quot;: {&quot;type&quot;: &quot;D-M-F-Ob&quot;, &quot;weight&quot;: 0.8}, &quot;CauseCraft&quot;: {&quot;type&quot;: &quot;T-H-G-X&quot;, &quot;weight&quot;: 0.86}, &quot;ProofPurpose&quot;: {&quot;type&quot;: &quot;Ex-Fo-Pr-Be&quot;, &quot;weight&quot;: 0.84}, &quot;ENGINE&quot;: {&quot;type&quot;: &quot;C+F+AP&quot;, &quot;weight&quot;: 0.92}}, &quot;engine_metrics&quot;: null, &quot;quotes&quot;: [{&quot;text&quot;: &quot;SpaceX is overvalued (may forever remain overvalued to boot as well), but there&#x27;s basically no chance it goes bankrupt because Starlink is within SpaceX and it is absolutely valuable&quot;, &quot;source&quot;: &quot;r/stocks&quot;, &quot;signal&quot;: &quot;backfilled from dossier HTML&quot;}, {&quot;text&quot;: &quot;Gun to head, I still think AES, but it&#x27;s going to depend on a few things.&quot;, &quot;source&quot;: &quot;r/stocks&quot;, &quot;signal&quot;: &quot;backfilled from dossier HTML&quot;}], &quot;arguments&quot;: {&quot;hook&quot;: &quot;Opens with a personal stance or a blunt verdict (&#x27;Still Trump all 3 times&#x27;; &#x27;M4A is Dead. on. Arrival.&#x27;), then usually adds an &#x27;but&#x27; or &#x27;unless.&#x27;&quot;, &quot;development&quot;: &quot;Branches into scenarios with real numbers and named places (Benson +6.5, Cherokee/Forsyth/Columbia, Cleveland CPI); folds in local knowledge and institutional history before checking the other side.&quot;, &quot;closure&quot;: &quot;Ends with a qualified bottom line (&#x27;I still think AES...&#x27;) and often a shrug-level coda (&#x27;It is what it is&#x27;, &#x27;who knows...&#x27;).&quot;}, &quot;one_line&quot;: &quot;A casually contrarian scenario-builder who talks like a beat reporter and thinks like a nervous actuary, mixing blunt verdicts with hedged futures.&quot;}' id="copy-payload" aria-label="Copy JSON for u/95Daphne">Copy JSON</button>
+            </div>
+          </div>
+          <details class="expand" id="expandable-row"><summary style="cursor:pointer;font:700 11px/1 var(--font-helvetica-neue);letter-spacing:.06em;text-transform:uppercase;color:var(--color-caption-gray)">Preview — quote & argument</summary>
+            <blockquote>“SpaceX is overvalued (may forever remain overvalued to boot as well), but there's basically no chance it goes bankrupt because Starlink is within SpaceX and it is absolutely valuab” <span class="mono" style="color:var(--color-caption-gray)">— r/stocks</span></blockquote>
+            <p style="margin:8px 0 0"><b>Hook:</b> Opens with a personal stance or a blunt verdict ('Still Trump all 3 times'; 'M4A is Dead. on. Arrival.'), then usually adds an 'but' or 'unless.'</p>
+            <p style="margin:8px 0 0" class="mono">Full rubric in <code>personas.jsonl</code> and the Copy JSON payload — paste directly into a simulation prompt.</p>
+          </details>
+        </div></div>
+<p style="margin-top:12px;font:500 11px/1 var(--font-helvetica-neue);color:var(--color-caption-gray)">Showing all 2 personas inline. Payloads are embedded as JSON — no server fetch. Full dossiers link to Notion HTML.</p>
 </section>
 <section><div class="eyebrow">USAGE</div>
 <div class="grid3">
-<div class="card"><div style="font:700 11px/1 var(--font-helvetica-neue);letter-spacing:.06em;text-transform:uppercase;color:var(--color-caption-gray)">Simulate reactions</div><pre class="mono" style="margin:8px 0 0;white-space:pre-wrap">import json
+<div class="card"><div style="font:700 11px/1 var(--font-helvetica-neue);letter-spacing:.06em;text-transform:uppercase;color:var(--color-caption-gray)">Cohort simulation</div><pre class="mono" style="margin:8px 0 0;white-space:pre-wrap">import json
 rows=[json.loads(l) for l in open("personas.jsonl")]
-# feed persona_stack to your sim
+cohort=[r for r in rows if (r.get("engine") or dict()).get("C",0)>=4]
+# copy JSON from the panel, or filter by archetype and bulk-export
 </pre></div>
-<div class="card"><div style="font:700 11px/1 var(--font-helvetica-neue);letter-spacing:.06em;text-transform:uppercase;color:var(--color-caption-gray)">Debate prep</div><p style="margin:8px 0 0;font-size:13px;line-height:1.5">Open any dossier — Engine + Big Five + quotes + argument architecture tell you how they'll engage.</p></div>
-<div class="card" style="background:var(--color-margin-white)"><div style="font:700 11px/1 var(--font-helvetica-neue);letter-spacing:.06em;text-transform:uppercase;color:var(--color-caption-gray)">Resume</div><p style="margin:8px 0 0;font-size:13px;line-height:1.5">Same command resumes: <code>python build_dataset.py --subreddit stocks --users 22 --out /Users/alannguyen/Documents/Vibe Code/reddit-intel-stocks/dataset-pilot-20</code></p></div>
+<div class="card"><div style="font:700 11px/1 var(--font-helvetica-neue);letter-spacing:.06em;text-transform:uppercase;color:var(--color-caption-gray)">Vega-Lite (agent)</div><p style="margin:8px 0 0;font-size:13px;line-height:1.5">Charts are Vega-Lite JSON in <code>&lt;script type="application/json"&gt;</code> — parse the <code>data.values</code> array to validate bias (e.g. no P≤2 cohort, all agreeableness=High).</p></div>
+<div class="card warm"><div style="font:700 11px/1 var(--font-helvetica-neue);letter-spacing:.06em;text-transform:uppercase;color:var(--color-caption-gray)">Resume & scale</div><p style="margin:8px 0 0;font-size:13px;line-height:1.5">Same command resumes: <code>python build_dataset.py --subreddit stocks --users 22 --out /tmp/pack-check/redditor_synthesizer/examples/sample-dataset</code>. At 500+, compile <code>personas.jsonl</code> → <code>personas.db</code> (SQLite) — index stays single-file.</p></div>
 </div>
 </section>
 </div>
-<div class="footer">MONOCLE · Dataset Index · r/stocks · 15 Aug 2026 · 15:26 UTC · Arctic Shift archive · Single-file HTML — opens offline</div>
+<div class="footer">Hermes · Dataset Control Panel · r/stocks · 15 Aug 2026 · 16:43 UTC · Arctic Shift archive · Declarative Vega-Lite · Local-first · Single-file HTML — opens offline</div>
+
+<script id="dataset-payload" type="application/json">[{"author": "1foxyboi", "engine": {"C": 4, "F": 3, "A1": 4, "A2": 3, "P": 2, "signature": "C+ F~ A1+ A2~ P-", "envelope_strong": "A tight, meme-fluent contrarian who can do per-share dilution math in one comment and weaponize a clown emoji in the next.", "envelope_fragile": "A -50% drawdown leaks through the deadpan — 'Why must you hurt me' — and confidence dissolves into 'I just don't get the market this year.'", "failure_modes": ["Dismisses valid nuance with one-word verdicts ('Ok', 'Don't', '🤡') when the thread doesn't match his frame.", "Confuses his own conviction with analysis — 'Huh? I said you're objectively wrong we will have $250' — then flips to confusion when price disagrees.", "Community glue ('I'd put half in rocket lab') fuses identity to the position, blocking any real thesis reassessment."], "anchors": {"C": "Paying in stock is also diluting.", "F": "Ok", "A1": "This gets 20 upvotes but anime girls get -20 is actually a crime", "A2": "cherry picking a number small enough to feel good about", "P": "I just don't get the market this year"}}, "big_five": {"openness": "Med — 'next RKLB ticker, doesn't have to be space' shows breadth, but every path still loops back to RKLB.", "conscientiousness": "Med — does real homework on fairness opinions and ATM dilution, yet the posting pattern is a fragmented, emotive reaction log.", "extraversion": "Low-Med — seeks communal crowning ('come back here to be crowned by my people') but never converses, only delivers verdicts.", "agreeableness": "Low — 'This is absolutely cope' and 'that's such stupid logic' are his openers; 'Fair enough' is his rarest concession.", "neuroticism": "Med-High — under the deadpan, the drawdown is personal: 'Why must you hurt me' and 'I just don't get the market this year.'"}, "persona_stack": {"MBTI": {"type": "ISTP", "weight": 0.55}, "PRISM": {"type": "FXMC", "weight": 0.7}, "QuEST": {"type": "QDVF", "weight": 0.75}, "RealityLens": {"type": "D-M-F-Ob", "weight": 0.68}, "CauseCraft": {"type": "T-H-G-X", "weight": 0.85}, "ProofPurpose": {"type": "Ex-Fo-Pr-Be", "weight": 0.7}, "ENGINE": {"type": "C+F+AP", "weight": 0.92}}, "engine_metrics": null, "quotes": [{"text": "Cheering a 0.3% day while you're down 50% is cope because it's cherry picking a number small enough to feel good about while ignoring the number that actually matters.", "source": "r/stocks", "signal": "backfilled from dossier HTML"}, {"text": "We had an atm and that's diluting us to generate cash. Whatever we don't pay to iridium in cash, we have to pay in stock. Paying in stock is also diluting.", "source": "r/stocks", "signal": "backfilled from dossier HTML"}], "arguments": {"hook": "Blunt contrarian verdict or mocking question that names the cope immediately.", "development": "Short causal chain built on observable numbers (5-day chart, % from ATH, per-share dilution) and named actors (Iridium advisors, SPB leadership).", "closure": "A one-line kill shot — either a definitional verdict ('That's the definition of cope') or a communal meme that ends the thread."}, "one_line": "A sharp, meme-armed retail skeptic who can break down Iridium bid math in one comment and mock the whole subreddit in the next — but whose deadpan cracks the moment RKLB drops another percent.", "comments": 30, "cohort": "A", "model": ""}, {"author": "95Daphne", "engine": {"C": 4, "F": 4, "A1": 4, "A2": 2, "P": 4, "signature": "C+ F+ A1+ A2~ P+", "envelope_strong": "Confident, colorful, conditional: can say 'Dead. on. Arrival.' and 'it's going to depend on a few things' in the same breath.", "envelope_fragile": "Over-hedging can make a clear verdict feel like a shrug: 'Gun to head, I still think AES' immediately followed by 'but it's going to depend on a few things.'", "failure_modes": ["Over-qualifies until the point evaporates", "Fatalistic one-liners can read as dismissive", "Rambling asides bury the lede"], "anchors": {"C": "M4A is Dead. on. Arrival.", "F": "it's going to depend on a few things", "A1": "This is AOC and it's really not even close.", "A2": "Definitely watching.", "P": "word 'round the block"}}, "big_five": {"openness": "High — broad, self-directed interests (Wii hacking, CPI construction, Georgia exurbs, Saluda River tubing) and curiosity about 'off hand comments' as data.", "conscientiousness": "Medium — he tracks details and caveats, but presents as deliberately rambling and unsystematic ('my long, rambling post').", "extraversion": "Low-Medium — no social small talk; energy is in monologue/analysis, with sports fandom as shared context.", "agreeableness": "Low-Medium — blunt and contrarian ('Hate to break it to you bud'), but more concession-prone than hostile ('Okay so I'm mistaken...').", "neuroticism": "Medium — doom-flavored forecasts ('the Republic is already lost for good'), sports fatalism, but often ironic and self-aware."}, "persona_stack": {"MBTI": {"type": "INTP", "weight": 0.88}, "PRISM": {"type": "FXMC", "weight": 0.82}, "QuEST": {"type": "QDVF", "weight": 0.85}, "RealityLens": {"type": "D-M-F-Ob", "weight": 0.8}, "CauseCraft": {"type": "T-H-G-X", "weight": 0.86}, "ProofPurpose": {"type": "Ex-Fo-Pr-Be", "weight": 0.84}, "ENGINE": {"type": "C+F+AP", "weight": 0.92}}, "engine_metrics": null, "quotes": [{"text": "SpaceX is overvalued (may forever remain overvalued to boot as well), but there's basically no chance it goes bankrupt because Starlink is within SpaceX and it is absolutely valuable", "source": "r/stocks", "signal": "backfilled from dossier HTML"}, {"text": "Gun to head, I still think AES, but it's going to depend on a few things.", "source": "r/stocks", "signal": "backfilled from dossier HTML"}], "arguments": {"hook": "Opens with a personal stance or a blunt verdict ('Still Trump all 3 times'; 'M4A is Dead. on. Arrival.'), then usually adds an 'but' or 'unless.'", "development": "Branches into scenarios with real numbers and named places (Benson +6.5, Cherokee/Forsyth/Columbia, Cleveland CPI); folds in local knowledge and institutional history before checking the other side.", "closure": "Ends with a qualified bottom line ('I still think AES...') and often a shrug-level coda ('It is what it is', 'who knows...')."}, "one_line": "A casually contrarian scenario-builder who talks like a beat reporter and thinks like a nervous actuary, mixing blunt verdicts with hedged futures.", "comments": 30, "cohort": "A", "model": ""}]</script>
+<script id="vega-hist-spec" type="application/json">{"$schema": "https://vega.github.io/schema/vega-lite/v5.json", "description": "Engine score distributions (C/F/P 0-5)", "data": {"values": [{"axis": "C", "score": 4, "author": "1foxyboi"}, {"axis": "F", "score": 3, "author": "1foxyboi"}, {"axis": "P", "score": 2, "author": "1foxyboi"}, {"axis": "C", "score": 4, "author": "95Daphne"}, {"axis": "F", "score": 4, "author": "95Daphne"}, {"axis": "P", "score": 4, "author": "95Daphne"}]}, "facet": {"field": "axis", "type": "nominal", "columns": 3, "title": null}, "spec": {"mark": {"type": "bar", "color": "#ffc500", "stroke": "#000", "strokeWidth": 1}, "encoding": {"x": {"field": "score", "type": "ordinal", "title": "Score (0-5)", "axis": {"values": [0, 1, 2, 3, 4, 5]}}, "y": {"aggregate": "count", "type": "quantitative", "title": "Personas"}}}, "config": {"view": {"stroke": "transparent"}}, "width": 140, "height": 90}</script>
+<script id="vega-scatter-spec" type="application/json">{"$schema": "https://vega.github.io/schema/vega-lite/v5.json", "description": "Big Five: Agreeableness vs Openness (numeric 1=Low 2=Med 3=High, inferred)", "data": {"values": [{"agreeableness": 1, "openness": 2, "author": "1foxyboi", "cohort": "A", "signature": "C+ F~ A1+ A2~ P-"}, {"agreeableness": 2, "openness": 3, "author": "95Daphne", "cohort": "A", "signature": "C+ F+ A1+ A2~ P+"}]}, "mark": {"type": "point", "filled": true, "size": 80, "stroke": "#000", "strokeWidth": 1}, "encoding": {"x": {"field": "agreeableness", "type": "quantitative", "title": "Agreeableness (1 Low → 3 High)", "scale": {"domain": [0.7, 3.3]}}, "y": {"field": "openness", "type": "quantitative", "title": "Openness (1 Low → 3 High)", "scale": {"domain": [0.7, 3.3]}}, "color": {"field": "cohort", "type": "nominal", "title": "Archetype", "scale": {"domain": ["A", "B", "C", "D", "E"], "range": ["#ffc500", "#111", "#62aef0", "#f64932", "#e7e7e7"]}}, "tooltip": [{"field": "author"}, {"field": "signature"}, {"field": "cohort"}]}, "width": 320, "height": 220}</script>
+<script src="https://cdn.jsdelivr.net/npm/vega@5"></script>
+<script src="https://cdn.jsdelivr.net/npm/vega-lite@5"></script>
+<script src="https://cdn.jsdelivr.net/npm/vega-embed@6"></script>
+<script>
+(function(){
+  const rows = JSON.parse(document.getElementById('dataset-payload').textContent || '[]');
+  const histSpec = JSON.parse(document.getElementById('vega-hist-spec').textContent || '{}');
+  const scatterSpec = JSON.parse(document.getElementById('vega-scatter-spec').textContent || '{}');
+  // Vega-Lite render (graceful if offline — specs remain as JSON for agents)
+  function tryVega(id, spec) {
+    try { if (spec && spec.data && spec.data.values && spec.data.values.length>0) vegaEmbed('#'+id, spec, {actions:false, renderer:'canvas'}).catch(function(){}); else document.getElementById(id).innerHTML='<p class="mono" style="color:var(--color-caption-gray)">No data for this chart yet — add dossiers to populate.</p>'; } catch(e) { document.getElementById(id).innerHTML='<p class="mono">Chart unavailable offline — Vega JSON is still in the page source for agent parsing.</p>'; }
+  }
+  tryVega('vega-hist', histSpec);
+  tryVega('vega-scatter', scatterSpec);
+
+  const grid = document.getElementById('persona-card-grid');
+  const cards = grid ? Array.from(grid.querySelectorAll('.author-card')) : [];
+  const search = document.getElementById('searchInput');
+  const sortSel = document.getElementById('sortSelect');
+  const visible = document.getElementById('visibleCount');
+  let activeCohort = 'all';
+
+  function applyFilter() {
+    const q = (search && search.value || '').trim().toLowerCase();
+    let shown = 0;
+    cards.forEach(function(c) {
+      const cohort = c.getAttribute('data-cohort');
+      const hay = c.getAttribute('data-search') || '';
+      const passCohort = (activeCohort==='all' || cohort===activeCohort);
+      const passSearch = (!q || hay.indexOf(q) !== -1);
+      const show = passCohort && passSearch;
+      c.style.display = show ? '' : 'none';
+      if (show) shown++;
+    });
+    if (visible) visible.textContent = shown + ' / ' + cards.length + ' shown';
+  }
+  function applySort() {
+    if (!sortSel || !grid) return;
+    const key = sortSel.value;
+    const sorted = cards.slice().sort(function(a,b){
+      if (key==='author') return (a.getAttribute('data-author')||'').localeCompare(b.getAttribute('data-author')||'');
+      if (key==='engine_c') return parseInt(b.getAttribute('data-engine-c')||'0') - parseInt(a.getAttribute('data-engine-c')||'0');
+      if (key==='engine_p') return parseInt(b.getAttribute('data-engine-p')||'0') - parseInt(a.getAttribute('data-engine-p')||'0');
+      if (key==='comments') return parseInt(b.getAttribute('data-comments')||'0') - parseInt(a.getAttribute('data-comments')||'0');
+      if (key==='cohort') return (a.getAttribute('data-cohort')||'').localeCompare(b.getAttribute('data-cohort')||'');
+      return 0;
+    });
+    sorted.forEach(function(c){ grid.appendChild(c); });
+  }
+  document.querySelectorAll('.archetype-chip').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      document.querySelectorAll('.archetype-chip').forEach(function(b){ b.classList.remove('active'); b.setAttribute('aria-selected','false'); });
+      btn.classList.add('active'); btn.setAttribute('aria-selected','true');
+      activeCohort = btn.getAttribute('data-cohort') || 'all';
+      applyFilter();
+    });
+  });
+  if (search) search.addEventListener('input', applyFilter);
+  if (sortSel) sortSel.addEventListener('change', function(){ applySort(); applyFilter(); });
+  var expAll = document.getElementById('expandAll');
+  var colAll = document.getElementById('collapseAll');
+  if (expAll) expAll.addEventListener('click', function(){ cards.forEach(function(c){ var d=c.querySelector('details'); if(d) d.open=true; }); });
+  if (colAll) colAll.addEventListener('click', function(){ cards.forEach(function(c){ var d=c.querySelector('details'); if(d) d.open=false; }); });
+  // Copy JSON — delegates to first [data-copy-payload] match
+  document.addEventListener('click', function(e){
+    var t = e.target.closest('[data-copy-payload]');
+    if (!t) return;
+    var payload = t.getAttribute('data-copy-payload') || '';
+    // payload is html-escaped JSON — decode by creating a textarea
+    var ta = document.createElement('textarea');
+    ta.value = payload;
+    // Unescape html entities: use DOM
+    var div = document.createElement('div'); div.innerHTML = payload; 
+    try { ta.value = JSON.parse('"' + payload.replace(/"/g, '\\"') + '"'); } catch(_e) { ta.value = div.textContent || div.innerText || payload; }
+    // Simpler: the attribute was htmlmod-escaped; browser already decoded it on read — but html entities remain for &quot; etc.
+    // Use the raw inner: replace &quot; -> "
+    ta.value = (payload || '').replace(/&quot;/g,'"').replace(/&#x27;/g,"'").replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>');
+    // Try to pretty-print if valid JSON
+    try { var obj = JSON.parse(ta.value); ta.value = JSON.stringify(obj, null, 2); } catch(_e) {}
+    // Fallback: use clipboard API if available, else execCommand
+    var done = function(ok) {
+      var orig = t.textContent;
+      t.textContent = ok ? 'Copied ✓' : 'Copy failed';
+      setTimeout(function(){ t.textContent = orig; }, 1200);
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(ta.value).then(function(){ done(true); }, function(){ done(false); });
+    } else {
+      ta.style.position='fixed'; ta.style.opacity='0'; document.body.appendChild(ta); ta.select();
+      try { document.execCommand('copy'); done(true); } catch(_e) { done(false); }
+      document.body.removeChild(ta);
+    }
+  });
+  applyFilter();
+})();
+</script>
+
 </body></html>

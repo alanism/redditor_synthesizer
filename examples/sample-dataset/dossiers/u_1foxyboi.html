@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><meta name="color-scheme" content="light"/>
+<title>NOTION · u/1foxyboi — Communication Dossier</title><style>
+:root{--color-notion-blue:#0075de;--color-paper-warmth:#f6f5f4;--color-pure-white:#fff;--color-ink-black:#000;--color-charcoal:#111;--color-stone:#757575;--color-graphite:#615d59;--color-slate:#696969;--color-sky-tint:#e6f3fe;--color-marigold:#ffb110;--color-coral:#f64932;--color-saffron:#e89d01;--color-signal-blue:#097fe8;--color-sky-wash:#62aef0;--color-midnight-ink:#02093a;
+ --font-notioninter:Inter,ui-sans-serif,system-ui,-apple-system,sans-serif;--font-lyon-text:'Source Serif 4',Georgia,serif;
+ --text-caption:12px;--text-body:16px;--text-heading-sm:22px;--text-heading:40px;--text-display:72px;
+ --radius-cards:12px;--radius-pills:9999px;--radius-small:4px}
+*{box-sizing:border-box}html{scroll-behavior:smooth}
+body{margin:0;background:var(--color-paper-warmth);color:var(--color-ink-black);font-family:var(--font-notioninter);-webkit-font-smoothing:antialiased}
+a{color:var(--color-notion-blue)}
+.nav{position:sticky;top:0;z-index:20;background:var(--color-pure-white);border-bottom:1px solid rgba(0,0,0,.08);display:flex;align-items:center;justify-content:space-between;padding:0 16px;height:48px}
+.nav .left{display:flex;gap:12px;align-items:center;font:700 13px/1 var(--font-notioninter);letter-spacing:.02em}
+.nav .right{display:flex;gap:8px;align-items:center}
+.pill{display:inline-block;font:500 10px/1 var(--font-notioninter);letter-spacing:.06em;text-transform:uppercase;padding:4px 8px;border-radius:var(--radius-pills);border:1px solid rgba(0,0,0,.08);white-space:nowrap}
+.pill.blue{background:var(--color-notion-blue);color:#fff;border-color:var(--color-notion-blue)}
+.pill.warm{background:var(--color-marigold);color:#000;border-color:var(--color-marigold)}
+.pill.dark{background:var(--color-midnight-ink);color:#fff;border-color:var(--color-midnight-ink)}
+.hero{max-width:1100px;margin:0 auto;padding:28px 16px 18px;text-align:center}
+.hero h1{margin:0;font-size:40px;line-height:1.05;letter-spacing:-0.03em;font-weight:700}
+.hero h1 em{font-style:normal;background:var(--color-marigold);padding:2px 10px;border-radius:var(--radius-pills)}
+.hero .sub{margin:10px auto 0;max-width:62ch;color:var(--color-graphite);font-size:15px;line-height:1.5}
+.wrap{max-width:1100px;margin:0 auto;padding:0 16px}
+section{padding:24px 0;border-bottom:1px solid rgba(0,0,0,.08)}
+section:last-of-type{border-bottom:none}
+.eyebrow{font:700 11px/1 var(--font-notioninter);letter-spacing:.08em;text-transform:uppercase;color:var(--color-stone);margin:0 0 8px}
+h2{margin:0;font-size:22px;letter-spacing:-0.02em;font-weight:700}
+.lede{margin:6px 0 0;color:var(--color-graphite);font-size:14px;line-height:1.5;max-width:68ch}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:860px){.grid2{grid-template-columns:1fr}}
+.card{background:var(--color-pure-white);border:1px solid rgba(0,0,0,.08);border-radius:var(--radius-cards);padding:16px}
+.card.accent-marigold{background:var(--color-marigold);border-color:var(--color-marigold)}
+.card.accent-coral{background:var(--color-coral);border-color:var(--color-coral);color:#fff}
+.card.accent-coral .lede,.card.accent-coral p{color:rgba(255,255,255,.9)}
+.card.accent-sky{background:var(--color-sky-wash);border-color:var(--color-sky-wash)}
+.card.accent-midnight{background:var(--color-midnight-ink);border-color:var(--color-midnight-ink);color:#fff}
+.card.accent-midnight .lede,.card.accent-midnight p{color:#cbd5ff}
+.kpi{border:1px solid rgba(0,0,0,.08);background:var(--color-pure-white);padding:14px;border-radius:var(--radius-cards);text-align:center}
+.kpi b{display:block;font-size:22px;letter-spacing:-0.02em}
+.kpi span{font:700 10px/1 var(--font-notioninter);letter-spacing:.06em;text-transform:uppercase;color:var(--color-stone)}
+.mono{font-family:ui-monospace,monospace;font-size:12px}
+.quote{border-left:3px solid var(--color-marigold);padding:8px 12px;margin:8px 0;background:var(--color-paper-warmth);border-radius:0 var(--radius-small) var(--radius-small) 0}
+.quote blockquote{margin:0;font-family:var(--font-lyon-text);font-size:15px;line-height:1.5}
+.quote .meta{margin-top:4px;font:500 11px/1 var(--font-notioninter);color:var(--color-stone)}
+.table-wrap{background:var(--color-pure-white);border:1px solid rgba(0,0,0,.08);border-radius:var(--radius-cards);overflow:auto}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;font:700 10px/1 var(--font-notioninter);letter-spacing:.08em;text-transform:uppercase;color:var(--color-stone);padding:10px 12px;border-bottom:1px solid rgba(0,0,0,.08);white-space:nowrap}
+td{padding:10px 12px;border-bottom:1px solid rgba(0,0,0,.06);vertical-align:top}
+.note{margin:8px 0 0;font-size:11px;color:var(--color-stone);line-height:1.5}
+.footer{padding:16px;text-align:center;font:500 11px/1 var(--font-notioninter);letter-spacing:.06em;text-transform:uppercase;color:var(--color-stone);border-top:1px solid rgba(0,0,0,.08)}
+</style></head><body>
+<div class="nav"><div class="left"><span>NOTION</span> <span style="color:var(--color-stone);font-weight:400">· DOSSIER</span> <span style="color:var(--color-stone);font-weight:400">· u/1foxyboi</span></div>
+<div class="right"><span class="pill blue">LLM-SYNTHESIZED</span> <span class="pill">30 comments</span></div></div>
+<div class="hero"><h1>u/1foxyboi — <em>dossier</em></h1>
+<p class="sub">A sharp, meme-armed retail skeptic who can break down Iridium bid math in one comment and mock the whole subreddit in the next — but whose deadpan cracks the moment RKLB drops another percent. <span style="color:var(--color-stone)">· 15 Aug 2026 · 15:20 UTC · 30 comments · V3.3 Seven-Signal</span></p></div>
+<div class="wrap">
+
+<section><div class="eyebrow">00 — ENGINE LAYER <em>· capacity & reliability</em></div>
+<div class="grid2" style="align-items:start">
+<div class="card accent-midnight">
+  <div style="font:700 11px/1 var(--font-notioninter);letter-spacing:.08em;text-transform:uppercase;color:var(--color-marigold)">Signature</div>
+  <div style="font-size:24px;font-weight:700;letter-spacing:-0.02em;margin-top:6px">C+ F~ A1+ A2~ P-</div>
+  <div class="lede" style="color:#cbd5ff">C Crystallized · F Fluid · A1 Instrumental · A2 Meta-Cog · P Pressure — 0-5 with polarity H/M/L</div>
+  <div style="margin-top:10px;display:grid;gap:6px">
+    <div style="font-size:12px"><b>Strong envelope:</b> A tight, meme-fluent contrarian who can do per-share dilution math in one comment and weaponize a clown emoji in the next.</div>
+    <div style="font-size:12px"><b>Fragile envelope:</b> A -50% drawdown leaks through the deadpan — 'Why must you hurt me' — and confidence dissolves into 'I just don't get the market this year.'</div>
+    <div style="font-size:12px"><b>Failure modes:</b> Dismisses valid nuance with one-word verdicts ('Ok', 'Don't', '🤡') when the thread doesn't match his frame., Confuses his own conviction with analysis — 'Huh? I said you're objectively wrong we will have $250' — then flips to confusion when price disagrees., Community glue ('I'd put half in rocket lab') fuses identity to the position, blocking any real thesis reassessment.</div>
+  </div>
+</div>
+<div class="table-wrap"><table><thead><tr><th>Axis</th><th>Score</th><th></th><th>Evidence anchor</th></tr></thead><tbody><tr><td><b>C</b></td><td style='min-width:120px'><div style="height:8px;background:var(--color-paper-warmth);border-radius:999px;overflow:hidden;border:1px solid rgba(0,0,0,.06)"><div style="width:80%;height:100%;background:var(--color-notion-blue)"></div></div></td><td class='mono'><b>4/5</b></td><td style='max-width:260px;color:var(--color-graphite)'>Paying in stock is also diluting.</td></tr><tr><td><b>F</b></td><td style='min-width:120px'><div style="height:8px;background:var(--color-paper-warmth);border-radius:999px;overflow:hidden;border:1px solid rgba(0,0,0,.06)"><div style="width:60%;height:100%;background:var(--color-marigold)"></div></div></td><td class='mono'><b>3/5</b></td><td style='max-width:260px;color:var(--color-graphite)'>Ok</td></tr><tr><td><b>A1</b></td><td style='min-width:120px'><div style="height:8px;background:var(--color-paper-warmth);border-radius:999px;overflow:hidden;border:1px solid rgba(0,0,0,.06)"><div style="width:80%;height:100%;background:var(--color-notion-blue)"></div></div></td><td class='mono'><b>4/5</b></td><td style='max-width:260px;color:var(--color-graphite)'>This gets 20 upvotes but anime girls get -20 is actually a crime</td></tr><tr><td><b>A2</b></td><td style='min-width:120px'><div style="height:8px;background:var(--color-paper-warmth);border-radius:999px;overflow:hidden;border:1px solid rgba(0,0,0,.06)"><div style="width:60%;height:100%;background:var(--color-marigold)"></div></div></td><td class='mono'><b>3/5</b></td><td style='max-width:260px;color:var(--color-graphite)'>cherry picking a number small enough to feel good about</td></tr><tr><td><b>P</b></td><td style='min-width:120px'><div style="height:8px;background:var(--color-paper-warmth);border-radius:999px;overflow:hidden;border:1px solid rgba(0,0,0,.06)"><div style="width:40%;height:100%;background:var(--color-stone)"></div></div></td><td class='mono'><b>2/5</b></td><td style='max-width:260px;color:var(--color-graphite)'>I just don't get the market this year</td></tr></tbody></table></div>
+</div>
+<p class="note">Engine modulates all downstream layers. Directional, probabilistic, revisable. Anchors are short real phrases from corpus.</p>
+</section>
+
+<section><div class="eyebrow">01 — CORE COMMUNICATION & PERSONALITY <em>· Big Five + attributes</em></div>
+<div class="card" style="margin-top:10px">
+<div class="grid2">
+<div><div style="font:700 11px/1 var(--font-notioninter);letter-spacing:.06em;text-transform:uppercase;color:var(--color-stone)">Big Five (linguistically inferred)</div>
+<ul style="margin:8px 0 0;padding:0 0 0 16px;font-size:13px;line-height:1.6">
+<li><b>Openness:</b> Med — 'next RKLB ticker, doesn't have to be space' shows breadth, but every path still loops back to RKLB.</li>
+<li><b>Conscientiousness:</b> Med — does real homework on fairness opinions and ATM dilution, yet the posting pattern is a fragmented, emotive reaction log.</li>
+<li><b>Extraversion:</b> Low-Med — seeks communal crowning ('come back here to be crowned by my people') but never converses, only delivers verdicts.</li>
+<li><b>Agreeableness:</b> Low — 'This is absolutely cope' and 'that's such stupid logic' are his openers; 'Fair enough' is his rarest concession.</li>
+<li><b>Neuroticism:</b> Med-High — under the deadpan, the drawdown is personal: 'Why must you hurt me' and 'I just don't get the market this year.'</li>
+</ul></div>
+<div><div style="font:700 11px/1 var(--font-notioninter);letter-spacing:.06em;text-transform:uppercase;color:var(--color-stone)">Attributes</div>
+<ul style="margin:8px 0 0;padding:0 0 0 16px;font-size:13px;line-height:1.6">
+<li><b>Enneagram:</b> 6w5 — a skeptic who needs one trustworthy number (price, dilution) and instantly scans for who is pushing each narrative.</li>
+<li><b>IQ band:</b> 115-130</li>
+<li><b>Leanings:</b> Free-market retail populist, anti-hype, long-only RKLB conviction; mocks WSB culture while fully embodying it.</li>
+<li><b>Reflective vs Reactive:</b> 60% reactive, 40% reflective — one-line verdicts most days, structured essays only when the math gets violated.</li>
+<li><b>Thinking style:</b> First-principles mechanics: ATM = dilution, non-cash payment = dilution, bid spread = proof of overpayment; narratives require a named actor (Iridium advisors).</li>
+<li><b>Pace:</b> Bursty: 1-4 word gut shots, with rare 50+ word takedowns when he thinks the room is being stupid.</li>
+</ul></div>
+</div>
+</div>
+</section>
+
+<section><div class="eyebrow">02 — SIGNATURE STYLE <em>· linguistic fingerprint</em></div>
+<div class="grid2">
+<div class="card"><div style="font:700 11px/1 var(--font-notioninter);letter-spacing:.06em;text-transform:uppercase;color:var(--color-stone)">Vocabulary</div>
+<div style="margin-top:8px;font-size:12px;color:var(--color-stone)">Verbs</div><div style="margin-top:4px;display:flex;flex-wrap:wrap;gap:6px"><span class="pill">cope</span> <span class="pill">pump</span> <span class="pill">diluting</span> <span class="pill">cheering</span> <span class="pill">ignoring</span> <span class="pill">crowned</span></div>
+<div style="margin-top:8px;font-size:12px;color:var(--color-stone)">Adjectives</div><div style="margin-top:4px;display:flex;flex-wrap:wrap;gap:6px"><span class="pill">objectively</span> <span class="pill">stupid</span> <span class="pill">lame</span> <span class="pill">real</span> <span class="pill">single</span></div>
+<div style="margin-top:8px;font-size:12px;color:var(--color-stone)">Transitions</div><div style="margin-top:4px;display:flex;flex-wrap:wrap;gap:6px"><span class="pill">tbh</span> <span class="pill">I mean sure but</span> <span class="pill">Fair enough</span> <span class="pill">because</span> <span class="pill">Also</span></div>
+</div>
+<div class="card accent-marigold"><div style="font:700 11px/1 var(--font-notioninter);letter-spacing:.06em;text-transform:uppercase">Sentence & rhetoric</div>
+<p style="margin:8px 0 0;font-size:13px;line-height:1.5"><b>Sentence:</b> Fragments and one-liners by default; complete mechanical sentences appear when he's explaining dilution or debunking cope.</p>
+<p style="margin:6px 0 0;font-size:13px;line-height:1.5"><b>Rhetoric:</b> Deadpan Socratic mockery — asks a naive question ('Why is this being posted') to torch a take, then hands down a verdict.</p>
+<p style="margin:6px 0 0;font-size:13px;line-height:1.5"><b>Delivery:</b> Flat, meme-native, low-punctuation; emoji and GIFs are his punctuation marks.</p>
+</div>
+</div>
+</section>
+
+<section><div class="eyebrow">03 — EXAMPLE QUOTES <em>· grounded in corpus</em></div>
+<div class="card" style="margin-top:10px"><div class="quote"><blockquote>“Cheering a 0.3% day while you're down 50% is cope because it's cherry picking a number small enough to feel good about while ignoring the number that actually matters.”</blockquote><div class="meta">r/RKLB · <b style="color:var(--color-ink-black)">His core epistemology: only the real number matters; everything else is cope.</b></div></div><div class="quote"><blockquote>“We had an atm and that's diluting us to generate cash. Whatever we don't pay to iridium in cash, we have to pay in stock. Paying in stock is also diluting.”</blockquote><div class="meta">r/RKLB · <b style="color:var(--color-ink-black)">Mechanical first-principles thinking about dilution — no spin, just math.</b></div></div><div class="quote"><blockquote>“Kind of confused how the board justifies $54 when the only real competing bidder capped out at $41-45 and would only go to $45 if they got exclusivity.”</blockquote><div class="meta">r/RKLB · <b style="color:var(--color-ink-black)">Independent valuation skepticism — tests board claims against the actual bid spread.</b></div></div><div class="quote"><blockquote>“If I ever win a 1B lottery I'd put half in rocket lab just to come back here to be crowned by my people”</blockquote><div class="meta">r/RKLB · <b style="color:var(--color-ink-black)">Identity fused with the ticker and the community; deadpan humor barely covers the conviction.</b></div></div><div class="quote"><blockquote>“You think hawk tua really do spit on it?”</blockquote><div class="meta">r/wallstreetbets · <b style="color:var(--color-ink-black)">Meme-native deflection — humor deployed to devalue a take without engaging it.</b></div></div><div class="quote"><blockquote>“I just don't get the market this year”</blockquote><div class="meta">r/RKLB · <b style="color:var(--color-ink-black)">The crack in the deadpan — confusion and frustration leaking out under drawdown.</b></div></div></div>
+</section>
+
+<section><div class="eyebrow">04 — STRUCTURE OF ARGUMENTS <em>· hook → development → closure</em></div>
+<div class="grid2">
+<div class="card"><p style="margin:0;font-size:13px;line-height:1.6"><b>Hook:</b> Blunt contrarian verdict or mocking question that names the cope immediately.</p><p style="margin:8px 0 0;font-size:13px;line-height:1.6"><b>Development:</b> Short causal chain built on observable numbers (5-day chart, % from ATH, per-share dilution) and named actors (Iridium advisors, SPB leadership).</p><p style="margin:8px 0 0;font-size:13px;line-height:1.6"><b>Closure:</b> A one-line kill shot — either a definitional verdict ('That's the definition of cope') or a communal meme that ends the thread.</p></div>
+<div class="card accent-sky"><div style="font:700 11px/1 var(--font-notioninter);letter-spacing:.06em;text-transform:uppercase;color:var(--color-stone)">Corpus sample</div><p class="lede">Quotes above are verbatim from corpus. Below is raw comment count and avg length for calibration.</p>
+<div class="grid2" style="margin-top:8px"><div class="kpi"><span>Comments</span><b>30</b></div><div class="kpi"><span>Avg words</span><b>13</b></div></div>
+</div>
+</div>
+</section>
+
+<section><div class="eyebrow">05 — PROBLEM-SOLVING <em>· how uncertainty is resolved</em></div>
+<div class="card"><p style="margin:0;font-size:13px;line-height:1.6"><b>Approach:</b> Anchor to observable numbers first; distrust narratives and authority; accept the ugly answer ('the market just hates us').</p>
+<ol style="margin:8px 0 0;padding:0 0 0 18px;font-size:13px;line-height:1.7">
+<li>Pull the real number (0.3% vs -50%, dilution per share, bid fair value) and strip out spin.</li><li>Trace the narrative to a source: Who benefits? Iridium's advisors. Who's silent? SPB leadership.</li><li>Run the mechanics — ATM cash vs stock-for-cash in the Iridium deal — until the math closes.</li><li>Verdict with a label ('cope', 'crime', 'lame') and move on without revision.</li>
+</ol></div>
+</section>
+
+<section><div class="eyebrow">06 — HUMOR, DRAMA & EMOTIONAL NUANCE</div>
+<div class="grid2">
+<div class="card"><p style="margin:0;font-size:13px;line-height:1.6"><b>Type:</b> Meme-native deadpan; mock confusion and absurd hypotheticals.</p><p style="margin:6px 0 0;font-size:13px;line-height:1.6"><b>Timing:</b> Immediate, delivered in a single line after the other person commits to a hype or doom take.</p><p style="margin:6px 0 0;font-size:13px;line-height:1.6"><b>Range:</b> Clown emojis, meme song references (hawk tua), and self-deprecating lottery fantasies.</p></div>
+<div class="card accent-coral"><p style="margin:0;font-size:13px;line-height:1.6"><b>Destabilizes when:</b> When he's down big and someone cherry-picks a small green day — the joke turns into a surgical 'cope' attack.</p><p class="lede" style="color:rgba(255,255,255,.85);margin-top:8px">Critical for persuasion and digital twin fidelity — where humor sharpens vs collapses.</p></div>
+</div>
+</section>
+
+<section><div class="eyebrow">07 — RESPONSE STRATEGIES & CLOSING TECHNIQUES</div>
+<div class="card"><p style="margin:0;font-size:13px;line-height:1.6"><b>Challenge handling:</b> Push back with the actual -50% number and ask if his position size still lets him sleep; he respects anyone who sits with the real number rather than 0.3% cherry-picks.</p><p style="margin:6px 0 0;font-size:13px;line-height:1.6"><b>Reframing:</b> Agree the market is 'lame' but frame the drawdown as the cost of conviction; he already says he's 'still long RKLB.'</p><p style="margin:6px 0 0;font-size:13px;line-height:1.6"><b>Closure:</b> A shared laugh and the recognition that you're both long RKLB — he wants to be 'crowned by his people,' not argued out of his thesis.</p><p style="margin:6px 0 0;font-size:13px;line-height:1.6"><b>Aftertaste:</b> A wary respect — he'll remember the one person who debated the dilution math properly; everyone else is 'cope.'</p></div>
+</section>
+
+<section><div class="eyebrow">APPENDIX A — SEVEN-SIGNAL TABLE</div>
+<div class="table-wrap"><table><thead><tr><th>Layer</th><th>Question</th><th>Primary signals</th></tr></thead><tbody>
+<tr><td><b>Engine</b></td><td>Can they execute?</td><td>Speed, density, stress shifts</td></tr>
+<tr><td>MBTI</td><td>How they think</td><td>Syntax, abstraction</td></tr>
+<tr><td>PRISM</td><td>What they value</td><td>Moral framing</td></tr>
+<tr><td>QuEST</td><td>How they act</td><td>Tempo, pressure</td></tr>
+<tr><td>Reality Lens</td><td>What is real</td><td>Ontology, metaphor</td></tr>
+<tr><td>Cause & Craft</td><td>How they build</td><td>Evidence type</td></tr>
+<tr><td>Proof & Purpose</td><td>Why they speak</td><td>Ethical closure</td></tr>
+</tbody></table></div>
+</section>
+
+<section><div class="eyebrow">APPENDIX B — JSON RUBRIC <em>· AI-friendly persona_stack</em></div>
+<div class="card" style="background:var(--color-midnight-ink);color:#cbd5ff;border-color:var(--color-midnight-ink)">
+<div style="font:700 11px/1 var(--font-notioninter);letter-spacing:.06em;text-transform:uppercase;color:var(--color-marigold)">persona_stack + engine_metrics</div>
+<pre class="mono" style="margin:10px 0 0;white-space:pre-wrap;word-break:break-word;font-size:11px;line-height:1.5">{
+  "persona_stack": {
+    "MBTI": {
+      "type": "ISTP",
+      "weight": 0.55
+    },
+    "PRISM": {
+      "type": "FXMC",
+      "weight": 0.7
+    },
+    "QuEST": {
+      "type": "QDVF",
+      "weight": 0.75
+    },
+    "RealityLens": {
+      "type": "D-M-F-Ob",
+      "weight": 0.68
+    },
+    "CauseCraft": {
+      "type": "T-H-G-X",
+      "weight": 0.85
+    },
+    "ProofPurpose": {
+      "type": "Ex-Fo-Pr-Be",
+      "weight": 0.7
+    },
+    "ENGINE": {
+      "type": "C+F+AP",
+      "weight": 0.92
+    }
+  },
+  "engine_metrics": {
+    "knowledge_density": "C+ \u2014 real command of RKLB financing mechanics and bid math; thin outside the ticker.",
+    "refactoring_velocity": "F+ \u2014 flips meme-to-essay-to-meme instantly, but the underlying long thesis never changes.",
+    "augmentation_affinity": "A \u2014 uses the community as a crowd to be crowned by and a punching bag for verdicts; not a connector.",
+    "stress_poise": "P- \u2014 cracks into 'I just don't get the market' under drawdown."
+  }
+}</pre>
+</div>
+<p class="note">Heuristic mode uses lexicon/vocab signals. LLM mode fills every field with evidence anchors. Re-run with --limit 500 for deeper fidelity.</p>
+</section>
+
+</div>
+<div class="footer">NOTION · Communication Dossier · u/1foxyboi · 15 Aug 2026 · 15:20 UTC · Arctic Shift archive · Notion tokens #f6f5f4 / #ffb110 / 12px cards · Single-file HTML — opens offline</div>
+</body></html>
