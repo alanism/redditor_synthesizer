@@ -1,0 +1,190 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><meta name="color-scheme" content="light"/>
+<title>Cosmos · Sample Size — r/stocks · 95% / ±3%</title>
+<style>
+:root{--color-linen-canvas:#f7f5f3;--color-ink-black:#0d0d0d;--color-paper-white:#ffffff;--color-stone:#6e6a69;--color-pebble:#9a9796;
+ --font-cosmosoracle:'cosmosOracle',Georgia,'Times New Roman',serif;
+ --text-caption:14px;--text-body:16px;--text-heading-sm:24px;--text-heading:33px;--text-display:58px;
+ --spacing-16:16px;--spacing-24:24px;--spacing-32:32px;--spacing-48:48px;
+ --radius-cards:16px;--radius-buttons:16px;--page-max-width:1280px}
+*{box-sizing:border-box}html{scroll-behavior:smooth}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+body{margin:0;background:var(--color-linen-canvas);color:var(--color-ink-black);font-family:Georgia,'Times New Roman',serif;-webkit-font-smoothing:antialiased}
+a{color:inherit}
+.pill-nav{position:sticky;top:12px;z-index:20;display:flex;align-items:center;justify-content:space-between;gap:12px;margin:12px auto;max-width:var(--page-max-width);background:var(--color-paper-white);border:1px solid rgba(13,13,13,.12);border-radius:9999px;padding:8px 14px;font-size:13px}
+.pill-nav .l{display:flex;align-items:center;gap:8px;font-weight:500}
+.pill-nav .dot{width:18px;height:18px;display:grid;place-items:center;font-size:10px}
+.pill-nav .r{display:flex;align-items:center;gap:14px}
+.pill-nav a{text-decoration:none;color:var(--color-stone);font-size:12px}
+.btn-pill{appearance:none;border:none;background:var(--color-ink-black);color:var(--color-paper-white);font:500 13px/1 Georgia,serif;padding:10px 16px;border-radius:var(--radius-buttons);cursor:pointer}
+.btn-ghost{appearance:none;background:var(--color-paper-white);color:var(--color-ink-black);border:1px solid rgba(13,13,13,.15);font:500 13px/1 Georgia,serif;padding:10px 16px;border-radius:var(--radius-buttons);cursor:pointer}
+.mast{max-width:var(--page-max-width);margin:0 auto;padding:18px 16px 8px;text-align:center}
+.mast h1{margin:0;font-weight:350;font-size:38px;letter-spacing:-1.5px;line-height:1}
+.mast .sub{margin:6px 0 0;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--color-stone)}
+.mast .kicker{display:flex;justify-content:center;gap:16px;flex-wrap:wrap;margin-top:10px;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--color-stone)}
+.mast .kicker span+span::before{content:"·";margin-right:16px;color:var(--color-pebble)}
+.wrap{max-width:var(--page-max-width);margin:0 auto;padding:0 16px}
+section{padding:32px 0;border-bottom:1px solid rgba(13,13,13,.08)}
+section:last-of-type{border-bottom:none}
+.eyebrow{font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:var(--color-stone);margin:0 0 10px;font-weight:500}
+h2{margin:0;font-weight:350;font-size:33px;line-height:1.1;letter-spacing:-1.32px;max-width:24ch}
+h2 strong{font-weight:500}
+h2 em{font-style:normal;background:linear-gradient(transparent 64%, rgba(13,13,13,.08) 64% 88%, transparent 88%)}
+.deck{margin:12px 0 0;color:var(--color-stone);font-size:16px;line-height:1.5;max-width:62ch}
+.deck b{color:var(--color-ink-black)}
+.lede{color:var(--color-stone);font-size:15px;line-height:1.5;margin:0 0 16px;max-width:68ch}
+.lede b{color:var(--color-ink-black)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+@media(max-width:860px){.grid2{grid-template-columns:1fr}}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+@media(max-width:900px){.grid3{grid-template-columns:1fr 1fr}}
+@media(max-width:560px){.grid3{grid-template-columns:1fr}}
+.card{background:var(--color-paper-white);border:1px solid rgba(13,13,13,.08);border-radius:var(--radius-cards);padding:16px}
+.card-linen{background:var(--color-linen-canvas);border:1px solid rgba(13,13,13,.06)}
+.mono{font-family:ui-monospace,monospace;font-size:12px}
+.pill{display:inline-block;font-size:10px;letter-spacing:.06em;text-transform:uppercase;padding:3px 8px;border:1px solid rgba(13,13,13,.12);background:var(--color-paper-white);white-space:nowrap;border-radius:9999px}
+.pill.dark{background:var(--color-ink-black);color:var(--color-paper-white);border-color:var(--color-ink-black)}
+.pill.ghost{color:var(--color-stone)}
+.kpi{display:grid;place-items:center;text-align:center;padding:18px}
+.kpi b{font-size:34px;letter-spacing:-1.5px;line-height:1;font-weight:350}
+.kpi span{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--color-stone);margin-top:6px}
+.kpi p{margin:6px 0 0;font-size:11px;color:var(--color-stone);line-height:1.4}
+.table-wrap{background:var(--color-paper-white);border:1px solid rgba(13,13,13,.08);border-radius:var(--radius-cards);overflow:auto}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--color-stone);font-weight:500;padding:10px 12px;border-bottom:1px solid rgba(13,13,13,.08);white-space:nowrap;background:var(--color-paper-white)}
+td{padding:10px 12px;border-bottom:1px solid #f0ece8;vertical-align:middle}
+tr:last-child td{border-bottom:none}
+.callout{border:1px solid rgba(13,13,13,.08);padding:16px;background:var(--color-paper-white);border-radius:var(--radius-cards)}
+.note{margin:10px 0 0;font-size:11px;color:var(--color-stone);line-height:1.5}
+.footer{padding:16px;text-align:center;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--color-stone);border-top:1px solid rgba(13,13,13,.08)}
+.hero{padding:28px 0 24px;display:grid;grid-template-columns:1.3fr .85fr;gap:24px;border-bottom:1px solid rgba(13,13,13,.08)}
+@media(max-width:860px){.hero{grid-template-columns:1fr}}
+.big-num{font-size:52px;letter-spacing:-2.5px;line-height:1;font-weight:350}
+</style>
+</head><body>
+<nav class="pill-nav" aria-label="Nav"><div class="l"><span class="dot">◈</span> COSMOS <span style="color:var(--color-pebble);font-weight:400">SAMPLE SIZE</span></div><div class="r"><a href="#recommendation">Recommendation</a><a href="#formula">Formula</a><a href="#sensitivity">Sensitivity</a><button class="btn-pill" onclick="navigator.clipboard&&navigator.clipboard.writeText(location.href)">Share ↓</button></div></nav>
+<header class="mast"><h1>COSMOS · SAMPLE SIZE</h1><div class="sub">How many redditors to pull — and how sure you can be</div>
+<div class="kicker"><span><b>8,418,548</b> population</span><span><b>95%</b> confidence</span><span><b>±3%</b> margin</span><span><b>1,067</b> required</span></div></header>
+
+<main class="wrap">
+
+<div class="hero">
+  <div>
+    <p class="eyebrow">Recommendation — r/stocks</p>
+    <h2>With <em>8,418,548</em> at 95% confidence, you need <em>1,067</em>.</h2>
+    <p class="deck">With <b>8,418,548</b> in r/stocks at <b>95% confidence</b> and <b>3% margin of error</b> (p=0.5, z=1.96), the finite-population sample is <b>1,067</b> (infinite-population n₀=1,068). We recommend <b>1,334</b> pulls to net 1,067 completions.</p>
+    <p class="lede" style="margin-top:10px">We recommend pulling <b>1,334</b> redditors (≈25.0% buffer) and targeting <b>1,067</b> completed dossiers. Start with a <b>pilot of 50</b> to validate the prompt and thin-rate before scaling.</p>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
+      <span class="pill dark">n = 1,067</span>
+      <span class="pill">pull target 1,334</span>
+      <span class="pill ghost">pilot 50</span>
+      <span class="pill ghost">p=0.5 · z=1.96</span>
+    </div>
+  </div>
+  <div class="card" style="display:grid;place-items:center;text-align:center">
+    <div>
+      <div style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--color-stone);font-weight:500">Required completes</div>
+      <div class="big-num" style="margin-top:6px">1,067</div>
+      <div style="font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--color-stone);margin-top:4px">of 8,418,548 · 95% / ±3%</div>
+      <div style="margin-top:12px;display:grid;grid-template-columns:1fr 1fr;gap:10px;text-align:left">
+        <div style="border-top:1px solid rgba(13,13,13,.08);padding-top:10px"><b style="font-size:16px">1,334</b><div style="font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--color-stone)">Pull target</div></div>
+        <div style="border-top:1px solid rgba(13,13,13,.08);padding-top:10px"><b style="font-size:16px">50</b><div style="font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--color-stone)">Pilot first</div></div>
+      </div>
+      <p class="note">Finite-population correction applied. Infinite n₀=1,068 → corrected n=1,067.</p>
+    </div>
+  </div>
+</div>
+
+<section id="recommendation">
+  <div class="eyebrow">01 — WHAT WE THINK & WHAT WE RECOMMEND</div>
+  <div class="grid2" style="align-items:start">
+    <div class="card">
+      <div style="font:500 11px/1 Georgia,serif;letter-spacing:.08em;text-transform:uppercase;color:var(--color-stone)">With x at y confidence and z margin, we think…</div>
+      <p style="margin:10px 0 0;font-size:14px;line-height:1.6">With <b>8,418,548</b> in r/stocks at <b>95% confidence</b> and <b>3% margin of error</b> (p=0.5, z=1.96), the finite-population sample is <b>1,067</b> (infinite-population n₀=1,068). At this sample, any proportion you measure will lie within ±3% of the true r/stocks value in 95% of repeated samples (95% ≈ 1.96σ, 99% ≈ 2.58σ).</p>
+      <p style="margin:8px 0 0;font-size:13px;line-height:1.6;color:var(--color-stone)">Sampling fraction: <b style="color:var(--color-ink-black)">0.01%</b> of population. Below ~5%, finite correction barely moves n₀ — above that, it saves meaningful pulls.</p>
+      <div style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap"><span class="pill ghost">N=8,418,548</span><span class="pill ghost">n₀=1,068</span><span class="pill dark">n=1,067</span><span class="pill">source: r/stocks subscribers via Arctic Shift</span></div>
+    </div>
+    <div class="card card-linen" style="border-left:3px solid var(--color-ink-black)">
+      <div style="font:500 11px/1 Georgia,serif;letter-spacing:.08em;text-transform:uppercase;color:var(--color-stone)">We recommend…</div>
+      <p style="margin:8px 0 0;font-size:14px;line-height:1.6"><b>Pull 1,334 → target 1,067 completions.</b> Buffer covers thin/deleted/bot authors (~15%) + fetch failures. Run a <b>pilot of 50</b> first to measure thin-rate, then scale with <code style="background:#fff;padding:2px 6px;border-radius:6px;border:1px solid rgba(13,13,13,.08)">build_dataset.py --subreddit stocks --users 1067 --comments-per-user 100 --out ./data/stocks/</code></p>
+      <ul style="margin:10px 0 0;padding:0 0 0 16px;font-size:13px;line-height:1.7">
+        <li>Heuristic mode (no LLM) for the pilot — validate pipeline cheap.</li>
+        <li>LLM mode (Notion dossiers) for the full sample — 1,067 dossiers.</li>
+        <li>Checkpoint via <code>manifest.json</code> — resume-safe.</li>
+      </ul>
+      
+    </div>
+  </div>
+  <div class="card" style="margin-top:16px">
+    <div style="font:500 11px/1 Georgia,serif;letter-spacing:.08em;text-transform:uppercase;color:var(--color-stone)">How to use this sample</div>
+    <div class="grid3" style="margin-top:10px">
+      <div><b style="font-size:14px">Random quotes</b><p style="margin:4px 0 0;font-size:13px;line-height:1.5;color:var(--color-stone)">From the 1,067 sample, draw a stratified random subset and surface verbatim quotes via <code>analyze.py</code> / <code>search_arctic.py --body "..."</code></p></div>
+      <div><b style="font-size:14px">Synthetic population</b><p style="margin:4px 0 0;font-size:13px;line-height:1.5;color:var(--color-stone)">Feed <code>personas.jsonl</code> (V3.3 rubrics) into your simulator to generate synthetic reactions at scale — same Engine distribution as the real sample.</p></div>
+      <div><b style="font-size:14px">Debate / messaging</b><p style="margin:4px 0 0;font-size:13px;line-height:1.5;color:var(--color-stone)">Pick high-leverage personas (e.g. C+ F+ or C- F-) from dossiers to pressure-test copy before shipping.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="formula">
+  <div class="eyebrow">02 — FORMULA <em>· SurveyMonkey-compatible</em></div>
+  <div class="grid2">
+    <div class="card">
+      <div style="font:500 11px/1 Georgia,serif;letter-spacing:.08em;text-transform:uppercase;color:var(--color-stone)">Cochran with finite correction</div>
+      <div class="mono" style="margin-top:8px;background:var(--color-linen-canvas);padding:12px;border-radius:12px;border:1px solid rgba(13,13,13,.06);line-height:1.7">
+        n₀ = (z² · p · (1-p)) / e²<br/>
+        n &nbsp;= n₀ / (1 + (n₀-1)/N)<br/><br/>
+        z = 1.96 (95% confidence)<br/>
+        e = 0.030 (±3%) · p = 0.5 (conservative)
+      </div>
+      <p class="note">Same inputs as SurveyMonkey: 94M at 99% / ±3% → 1,849. This implementation matches. p=0.5 is max-variance (safest when you don't know the split). Use p≠0.5 only when you have a prior.</p>
+    </div>
+    <div class="card">
+      <div style="font:500 11px/1 Georgia,serif;letter-spacing:.08em;text-transform:uppercase;color:var(--color-stone)">z-score table</div>
+      <div class="table-wrap" style="margin-top:8px"><table><thead><tr><th>Confidence</th><th>z-score</th></tr></thead><tbody>
+        <tr><td>80%</td><td class="mono">1.28</td></tr>
+        <tr><td>85%</td><td class="mono">1.44</td></tr>
+        <tr><td>90%</td><td class="mono">1.645</td></tr>
+        <tr style="background:var(--color-linen-canvas)"><td><b>95%</b></td><td class="mono"><b>1.96</b></td></tr>
+        <tr style="background:var(--color-linen-canvas)"><td><b>99%</b></td><td class="mono"><b>2.576</b></td></tr>
+      </tbody></table></div>
+      <p class="note">Computed with N=8,418,548. Change N, confidence, or margin and n recomputes deterministically — no LLM, fully reproducible.</p>
+    </div>
+  </div>
+</section>
+
+<section id="sensitivity">
+  <div class="eyebrow">03 — SENSITIVITY <em>· what moves the number</em></div>
+  <div class="grid2">
+    <div class="card">
+      <div style="font:500 11px/1 Georgia,serif;letter-spacing:.08em;text-transform:uppercase;color:var(--color-stone)">At ±3% margin — confidence changes n</div>
+      <div class="table-wrap" style="margin-top:8px"><table><thead><tr><th>Confidence</th><th>n (finite)</th><th style="color:var(--color-pebble)">n₀ infinite</th></tr></thead><tbody><tr><td><b>90%</b> <span style='color:var(--color-stone)'>z=1.645</span></td><td class='mono'>752</td><td class='mono' style='color:var(--color-stone)'>752</td></tr><tr><td><b>95%</b> <span style='color:var(--color-stone)'>z=1.96</span></td><td class='mono'>1,067</td><td class='mono' style='color:var(--color-stone)'>1,068</td></tr><tr><td><b>99%</b> <span style='color:var(--color-stone)'>z=2.58</span></td><td class='mono'>1,849</td><td class='mono' style='color:var(--color-stone)'>1,850</td></tr></tbody></table></div>
+      <p class="note">99% costs ~1.7× the pulls of 95% at the same margin.</p>
+    </div>
+    <div class="card">
+      <div style="font:500 11px/1 Georgia,serif;letter-spacing:.08em;text-transform:uppercase;color:var(--color-stone)">At 95% confidence — margin changes n</div>
+      <div class="table-wrap" style="margin-top:8px"><table><thead><tr><th>Margin</th><th>n (finite)</th><th style="color:var(--color-pebble)">n₀ infinite</th></tr></thead><tbody><tr><td><b>±3%</b></td><td class='mono'>1,067</td><td class='mono' style='color:var(--color-stone)'>1,068</td></tr><tr><td><b>±5%</b></td><td class='mono'>385</td><td class='mono' style='color:var(--color-stone)'>385</td></tr><tr><td><b>±7%</b></td><td class='mono'>196</td><td class='mono' style='color:var(--color-stone)'>196</td></tr><tr><td><b>±10%</b></td><td class='mono'>97</td><td class='mono' style='color:var(--color-stone)'>97</td></tr></tbody></table></div>
+      <p class="note">Halving margin roughly quadruples n — budget accordingly.</p>
+    </div>
+  </div>
+  <div class="card card-linen" style="margin-top:16px">
+    <div style="font:500 11px/1 Georgia,serif;letter-spacing:.08em;text-transform:uppercase;color:var(--color-stone)">Prompt-cache note (all three pipelines)</div>
+    <p style="margin:8px 0 0;font-size:13px;line-height:1.6">Sample-size itself is deterministic python — no prompt to cache. But the downstream synthesis that <em>uses</em> this n benefits: keep the V3.3 template as a stable <b>system prefix</b> and pass only the per-author corpus as the variable suffix. With prompt caching (OpenAI/Anthropic), the template is cached once and each of the 1,067 dossiers pays only for the corpus + completion.</p>
+    <ul style="margin:8px 0 0;padding:0 0 0 16px;font-size:13px;line-height:1.6;color:var(--color-stone)">
+      <li><b>Pulse (Monocle):</b> theme/sentiment prompt prefix is stable — cache it across re-runs of the same subreddit window.</li>
+      <li><b>Persona (Notion):</b> put the full V3.3 template in <code>system</code> / cached prefix, corpus in <code>user</code> — hit rate ≈ dossiers-1 / dossiers.</li>
+      <li><b>Dataset bulk:</b> same as persona × N — use <code>--model gpt-4o-mini</code> and sequential batching to keep cache hot.</li>
+    </ul>
+  </div>
+</section>
+
+<section>
+  <div class="eyebrow">04 — NEXT STEPS</div>
+  <div class="grid3">
+    <div class="card"><b style="font-size:14px">1 · Pilot</b><p style="margin:6px 0 0;font-size:13px;line-height:1.5;color:var(--color-stone)">Pull 50 authors, build heuristic dossiers, measure thin-rate and avg cost/dossier.</p><code class="mono" style="display:block;margin-top:8px;background:var(--color-linen-canvas);padding:8px;border-radius:8px">build_dataset.py --subreddit stocks --users 50 --no-llm --out ./data/stocks-pilot/</code></div>
+    <div class="card"><b style="font-size:14px">2 · Scale to n</b><p style="margin:6px 0 0;font-size:13px;line-height:1.5;color:var(--color-stone)">Re-run with LLM to 1,067 (pull 1,334). Resume-safe via manifest.json.</p><code class="mono" style="display:block;margin-top:8px;background:var(--color-linen-canvas);padding:8px;border-radius:8px">build_dataset.py --subreddit stocks --users 1067 --out ./data/stocks/</code></div>
+    <div class="card" style="background:var(--color-ink-black);color:var(--color-paper-white);border-color:var(--color-ink-black)"><b style="font-size:14px;color:var(--color-paper-white)">3 · Simulate</b><p style="margin:6px 0 0;font-size:13px;line-height:1.5;color:#cbd5ff">Use <code style="background:rgba(255,255,255,.12);padding:2px 6px;border-radius:6px">personas.jsonl</code> to synthesize reactions to posts/products before shipping.</p></div>
+  </div>
+</section>
+
+</main>
+<div class="footer">COSMOS · Sample Size Intelligence · r/stocks · N=8,418,548 · 95% / ±3% · n=1,067 · pull 1,334 · 15 Aug 2026 · 15:04 UTC · Cosmos tokens #f7f5f3 / #0d0d0d / 16px · Single-file HTML — opens offline</div>
+</body></html>

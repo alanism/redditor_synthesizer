@@ -1,0 +1,61 @@
+{
+  "author": "Wowmuchrya",
+  "engine": {
+    "C": 4,
+    "F": 4,
+    "A1": 4,
+    "A2": 3,
+    "P": 4,
+    "signature": "C+ F+ A1+ A2~ P+",
+    "envelope_strong": "Punchy verdicts anchored in basic profitability math; can dismantle a hype thesis in one line.",
+    "envelope_fragile": "Thin on constructive alternatives; relies on sarcasm; may overstate certainty on political catalysts.",
+    "failure_modes": [
+      "Dismisses nuance with 'lol' before fully engaging.",
+      "Projects current hype-cycle pessimism onto structural winners.",
+      "Treats a price drop as confirmation and a price rise as temporary distortion."
+    ],
+    "anchors": {
+      "C": "the answer is no",
+      "F": "Lol Zuckerberg\u2019s version of the future is far from what the actual future will be like.",
+      "A1": "If you make $1000 a day and then as soon as you leave the office you light $990 on fire...",
+      "A2": "What if google makes a phone that dominates the iphone? What if new startup company banana cookie pie makes a new phone?",
+      "P": "Just go to 0 already."
+    }
+  },
+  "persona_stack": {
+    "MBTI": {
+      "type": "ENTP",
+      "weight": 0.9
+    },
+    "PRISM": {
+      "type": "FXMC",
+      "weight": 0.85
+    },
+    "QuEST": {
+      "type": "QDVF",
+      "weight": 0.9
+    },
+    "RealityLens": {
+      "type": "D-M-F-Ob",
+      "weight": 0.82
+    },
+    "CauseCraft": {
+      "type": "T-H-G-X",
+      "weight": 0.88
+    },
+    "ProofPurpose": {
+      "type": "Ex-Fo-Pr-Be",
+      "weight": 0.9
+    },
+    "ENGINE": {
+      "type": "C+F+AP",
+      "weight": 0.93
+    }
+  },
+  "engine_metrics": {
+    "knowledge_density": "C+",
+    "refactoring_velocity": "F+",
+    "augmentation_affinity": "A",
+    "stress_poise": "P"
+  }
+}

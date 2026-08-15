@@ -1,0 +1,93 @@
+{
+  "title": "Decision > Prediction — Hermes Thrice Great Extension — Interest Survey (r/stocks)",
+  "intro": "Decision > Prediction (Decision_Prediction_Product_Packet.md v2026-04-09) is an evidence-layered decision engine for stock research and portfolio actions. Core promise: any decision (Buy/Hold/Trim/Sell, Sell→Trim→Hold→Scale-In overrides, Survivability Yes/Marginal/No) can be explained via Decision Receipt + Evidence Stack (Measured/Calculated/Modeled/Forecasted/Narrative) + Decision Trace (rules, thresholds, actuals). Deterministic kernel: Sharpe/Kelly sizing, sector/max-weight caps (Risk Managed vs Aggressive), 3-scenario stress (Normal/Severe/Liquidity Shock). Hermes Thrice Great = same evidence philosophy extended: great in philosophy (canvas/thesis), great in evidence (receipts/ledger/trace), great in action (routing/sizing under governance). This survey tests whether r/stocks-fluent users want Decision>Prediction AS a Hermes extension — i.e., their stock research + portfolio decisions run through the same auditable, file-first, cacheable decision OS as their other Hermes workflows, rather than as a standalone app.",
+  "questions": [
+    {
+      "id": "Q1",
+      "type": "likert_1_7",
+      "prompt": "Overall, how useful would a Decision > Prediction extension inside Hermes be for you (auditable Buy/Hold/Trim/Sell + Decision Receipt + Evidence Stack + Trace in one OS)?",
+      "labels": "1=Not at all useful … 7=Extremely useful"
+    },
+    {
+      "id": "Q2",
+      "type": "likert_1_7",
+      "prompt": "How useful is the Evidence Stack idea (every metric labeled Measured/Calculated/Modeled/Forecasted/Narrative with source or formula) for your stock research?",
+      "labels": "1-7"
+    },
+    {
+      "id": "Q3",
+      "type": "likert_1_7",
+      "prompt": "How useful is the deterministic math kernel (Sharpe bands 0.4/0.8, half-Kelly sizing, explicit caps + fallbacks like CAPM/volatility proxy) being inspectable and stable across re-runs?",
+      "labels": "1-7"
+    },
+    {
+      "id": "Q4",
+      "type": "likert_1_7",
+      "prompt": "How useful are the governance rules (sector caps, max-weight caps, Risk Managed vs Aggressive modes) as portfolio guardrails rather than hard blocks?",
+      "labels": "1-7"
+    },
+    {
+      "id": "Q5",
+      "type": "likert_1_7",
+      "prompt": "How useful is Phase 3.5-style auditability (chart/timeframe evidence strength → (EvidenceStrength-50)/5 → PosteriorMid ±6) when you can see the transform rather than a black-box score?",
+      "labels": "1-7"
+    },
+    {
+      "id": "Q6",
+      "type": "likert_1_7",
+      "prompt": "How useful is Survivability / stress bands (Normal/Severe/Liquidity Shock with safe/warn/liquidation reasoning, not broker math) as a 'can I survive being wrong?' check?",
+      "labels": "1-7"
+    },
+    {
+      "id": "Q7",
+      "type": "likert_1_7",
+      "prompt": "How likely would you be to try the Hermes + Decision > Prediction extension in the next 3 months if it were available (import your portfolio as text/CSV without sending files to a model)?",
+      "labels": "1=Not at all likely … 7=Extremely likely"
+    },
+    {
+      "id": "Q8",
+      "type": "nps_0_10",
+      "prompt": "How likely would you be to recommend the Hermes + Decision > Prediction extension to another serious r/stocks-style researcher? (NPS 0-10)",
+      "labels": "0=Not at all likely … 10=Extremely likely"
+    },
+    {
+      "id": "Q9",
+      "type": "single_choice",
+      "prompt": "Which integration fits you best?",
+      "options": [
+        "Standalone Decision > Prediction (keep it separate — I don't want it inside Hermes)",
+        "Hermes extension — light coupling (Decision > Prediction calls Hermes for evidence/trace storage, but runs standalone)",
+        "Hermes-native — Decision > Prediction is a first-class Hermes workflow (same project, same receipts, same cache)",
+        "Neither — not a fit",
+        "Undecided — need to see it first"
+      ]
+    },
+    {
+      "id": "Q10",
+      "type": "max_3",
+      "prompt": "Which 3 Decision > Prediction capabilities matter most to you? (pick up to 3)",
+      "options": [
+        "Decision Receipt (decision + trigger + reason in one place)",
+        "Evidence Stack with source.timestamp/source.url on Measured values",
+        "Deterministic math kernel with fallbacks (CAPM, vol proxy, sector floors)",
+        "Half-Kelly sizing + Sharpe regime (risk-adjusted edge)",
+        "Action rules + conviction override (Trim vs Hold vs Scale-In logic)",
+        "Market Reality Check — heuristic posterior (±6 range, Confirm/Caution/Contradiction)",
+        "Survivability stress bands (safe / warn / liquidation)",
+        "Reproducibility — re-run sensitivity across tickers/runs"
+      ]
+    },
+    {
+      "id": "Q11",
+      "type": "open",
+      "max_chars": 280,
+      "prompt": "In your own words, what would make a Hermes + Decision > Prediction extension genuinely useful (or not useful) for a researcher like you? (1-2 sentences)"
+    },
+    {
+      "id": "Q12",
+      "type": "open",
+      "max_chars": 280,
+      "prompt": "Biggest concern or blocker that would stop you from adopting this extension in the next 3 months? (1-2 sentences, be blunt — hallucinated sources, heuristic constants, speed, trust, anything)"
+    }
+  ]
+}

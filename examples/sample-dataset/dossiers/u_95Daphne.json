@@ -1,0 +1,61 @@
+{
+  "author": "95Daphne",
+  "engine": {
+    "C": 4,
+    "F": 4,
+    "A1": 4,
+    "A2": 2,
+    "P": 4,
+    "signature": "C+ F+ A1+ A2~ P+",
+    "envelope_strong": "Confident, colorful, conditional: can say 'Dead. on. Arrival.' and 'it's going to depend on a few things' in the same breath.",
+    "envelope_fragile": "Over-hedging can make a clear verdict feel like a shrug: 'Gun to head, I still think AES' immediately followed by 'but it's going to depend on a few things.'",
+    "failure_modes": [
+      "Over-qualifies until the point evaporates",
+      "Fatalistic one-liners can read as dismissive",
+      "Rambling asides bury the lede"
+    ],
+    "anchors": {
+      "C": "M4A is Dead. on. Arrival.",
+      "F": "it's going to depend on a few things",
+      "A1": "This is AOC and it's really not even close.",
+      "A2": "Definitely watching.",
+      "P": "word 'round the block"
+    }
+  },
+  "persona_stack": {
+    "MBTI": {
+      "type": "INTP",
+      "weight": 0.88
+    },
+    "PRISM": {
+      "type": "FXMC",
+      "weight": 0.82
+    },
+    "QuEST": {
+      "type": "QDVF",
+      "weight": 0.85
+    },
+    "RealityLens": {
+      "type": "D-M-F-Ob",
+      "weight": 0.8
+    },
+    "CauseCraft": {
+      "type": "T-H-G-X",
+      "weight": 0.86
+    },
+    "ProofPurpose": {
+      "type": "Ex-Fo-Pr-Be",
+      "weight": 0.84
+    },
+    "ENGINE": {
+      "type": "C+F+AP",
+      "weight": 0.92
+    }
+  },
+  "engine_metrics": {
+    "knowledge_density": "C+ \u2014 cites specific counties, poll margins, CPI mechanics, and BLS history.",
+    "refactoring_velocity": "F+ \u2014 openly updates: 'Okay so I'm mistaken...' and re-rates odds when new polls drop.",
+    "augmentation_affinity": "A \u2014 treats external data as raw material, but his own voice and local knowledge are the differentiator.",
+    "stress_poise": "P \u2014 stays composed during disagreement, but sharpens into fatalism under repeated nonsense."
+  }
+}

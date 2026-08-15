@@ -1,0 +1,107 @@
+{
+  "likerts": {
+    "Q1": {
+      "n": 20,
+      "mean": 5.5,
+      "median": 6.0,
+      "top2box": 60.0,
+      "dist": {
+        "4": 2,
+        "5": 6,
+        "6": 12
+      }
+    },
+    "Q2": {
+      "n": 20,
+      "mean": 6.7,
+      "median": 7.0,
+      "top2box": 100.0,
+      "dist": {
+        "6": 6,
+        "7": 14
+      }
+    },
+    "Q3": {
+      "n": 20,
+      "mean": 6.45,
+      "median": 6.0,
+      "top2box": 100.0,
+      "dist": {
+        "6": 11,
+        "7": 9
+      }
+    },
+    "Q4": {
+      "n": 20,
+      "mean": 5.5,
+      "median": 5.5,
+      "top2box": 50.0,
+      "dist": {
+        "5": 10,
+        "6": 10
+      }
+    },
+    "Q5": {
+      "n": 20,
+      "mean": 5.85,
+      "median": 6.0,
+      "top2box": 70.0,
+      "dist": {
+        "4": 2,
+        "5": 4,
+        "6": 9,
+        "7": 5
+      }
+    },
+    "Q6": {
+      "n": 20,
+      "mean": 6.45,
+      "median": 6.5,
+      "top2box": 95.0,
+      "dist": {
+        "5": 1,
+        "6": 9,
+        "7": 10
+      }
+    },
+    "Q7": {
+      "n": 20,
+      "mean": 5.5,
+      "median": 6.0,
+      "top2box": 65.0,
+      "dist": {
+        "4": 3,
+        "5": 4,
+        "6": 13
+      }
+    }
+  },
+  "nps": {
+    "promoters": 0.0,
+    "passives": 75.0,
+    "detractors": 25.0,
+    "score": -25.0,
+    "mean": 6.8,
+    "dist": {
+      "4": 2,
+      "6": 3,
+      "7": 10,
+      "8": 5
+    }
+  },
+  "journeys": {
+    "Hermes extension \u2014 light coupling (Decision > Prediction calls Hermes for evidence/trace storage, but runs standalone)": 15,
+    "Standalone Decision > Prediction (keep it separate \u2014 I don't want it inside Hermes)": 3,
+    "Hermes-native \u2014 Decision > Prediction is a first-class Hermes workflow (same project, same receipts, same cache)": 2
+  },
+  "top3": {
+    "Evidence Stack with source.timestamp/source.url on Measured values": 19,
+    "Deterministic math kernel with fallbacks (CAPM, vol proxy, sector floors)": 16,
+    "Survivability stress bands (safe / warn / liquidation)": 11,
+    "Reproducibility \u2014 re-run sensitivity across tickers/runs": 8,
+    "Decision Receipt (decision + trigger + reason in one place)": 5,
+    "Market Reality Check \u2014 heuristic posterior (\u00b16 range, Confirm/Caution/Contradiction)": 1
+  },
+  "n": 20,
+  "heuristic_count": 0
+}

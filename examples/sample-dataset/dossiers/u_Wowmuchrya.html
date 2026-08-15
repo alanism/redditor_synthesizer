@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><meta name="color-scheme" content="light"/>
+<title>NOTION · u/Wowmuchrya — Communication Dossier</title><style>
+:root{--color-notion-blue:#0075de;--color-paper-warmth:#f6f5f4;--color-pure-white:#fff;--color-ink-black:#000;--color-charcoal:#111;--color-stone:#757575;--color-graphite:#615d59;--color-slate:#696969;--color-sky-tint:#e6f3fe;--color-marigold:#ffb110;--color-coral:#f64932;--color-saffron:#e89d01;--color-signal-blue:#097fe8;--color-sky-wash:#62aef0;--color-midnight-ink:#02093a;
+ --font-notioninter:Inter,ui-sans-serif,system-ui,-apple-system,sans-serif;--font-lyon-text:'Source Serif 4',Georgia,serif;
+ --text-caption:12px;--text-body:16px;--text-heading-sm:22px;--text-heading:40px;--text-display:72px;
+ --radius-cards:12px;--radius-pills:9999px;--radius-small:4px}
+*{box-sizing:border-box}html{scroll-behavior:smooth}
+body{margin:0;background:var(--color-paper-warmth);color:var(--color-ink-black);font-family:var(--font-notioninter);-webkit-font-smoothing:antialiased}
+a{color:var(--color-notion-blue)}
+.nav{position:sticky;top:0;z-index:20;background:var(--color-pure-white);border-bottom:1px solid rgba(0,0,0,.08);display:flex;align-items:center;justify-content:space-between;padding:0 16px;height:48px}
+.nav .left{display:flex;gap:12px;align-items:center;font:700 13px/1 var(--font-notioninter);letter-spacing:.02em}
+.nav .right{display:flex;gap:8px;align-items:center}
+.pill{display:inline-block;font:500 10px/1 var(--font-notioninter);letter-spacing:.06em;text-transform:uppercase;padding:4px 8px;border-radius:var(--radius-pills);border:1px solid rgba(0,0,0,.08);white-space:nowrap}
+.pill.blue{background:var(--color-notion-blue);color:#fff;border-color:var(--color-notion-blue)}
+.pill.warm{background:var(--color-marigold);color:#000;border-color:var(--color-marigold)}
+.pill.dark{background:var(--color-midnight-ink);color:#fff;border-color:var(--color-midnight-ink)}
+.hero{max-width:1100px;margin:0 auto;padding:28px 16px 18px;text-align:center}
+.hero h1{margin:0;font-size:40px;line-height:1.05;letter-spacing:-0.03em;font-weight:700}
+.hero h1 em{font-style:normal;background:var(--color-marigold);padding:2px 10px;border-radius:var(--radius-pills)}
+.hero .sub{margin:10px auto 0;max-width:62ch;color:var(--color-graphite);font-size:15px;line-height:1.5}
+.wrap{max-width:1100px;margin:0 auto;padding:0 16px}
+section{padding:24px 0;border-bottom:1px solid rgba(0,0,0,.08)}
+section:last-of-type{border-bottom:none}
+.eyebrow{font:700 11px/1 var(--font-notioninter);letter-spacing:.08em;text-transform:uppercase;color:var(--color-stone);margin:0 0 8px}
+h2{margin:0;font-size:22px;letter-spacing:-0.02em;font-weight:700}
+.lede{margin:6px 0 0;color:var(--color-graphite);font-size:14px;line-height:1.5;max-width:68ch}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:860px){.grid2{grid-template-columns:1fr}}
+.card{background:var(--color-pure-white);border:1px solid rgba(0,0,0,.08);border-radius:var(--radius-cards);padding:16px}
+.card.accent-marigold{background:var(--color-marigold);border-color:var(--color-marigold)}
+.card.accent-coral{background:var(--color-coral);border-color:var(--color-coral);color:#fff}
+.card.accent-coral .lede,.card.accent-coral p{color:rgba(255,255,255,.9)}
+.card.accent-sky{background:var(--color-sky-wash);border-color:var(--color-sky-wash)}
+.card.accent-midnight{background:var(--color-midnight-ink);border-color:var(--color-midnight-ink);color:#fff}
+.card.accent-midnight .lede,.card.accent-midnight p{color:#cbd5ff}
+.kpi{border:1px solid rgba(0,0,0,.08);background:var(--color-pure-white);padding:14px;border-radius:var(--radius-cards);text-align:center}
+.kpi b{display:block;font-size:22px;letter-spacing:-0.02em}
+.kpi span{font:700 10px/1 var(--font-notioninter);letter-spacing:.06em;text-transform:uppercase;color:var(--color-stone)}
+.mono{font-family:ui-monospace,monospace;font-size:12px}
+.quote{border-left:3px solid var(--color-marigold);padding:8px 12px;margin:8px 0;background:var(--color-paper-warmth);border-radius:0 var(--radius-small) var(--radius-small) 0}
+.quote blockquote{margin:0;font-family:var(--font-lyon-text);font-size:15px;line-height:1.5}
+.quote .meta{margin-top:4px;font:500 11px/1 var(--font-notioninter);color:var(--color-stone)}
+.table-wrap{background:var(--color-pure-white);border:1px solid rgba(0,0,0,.08);border-radius:var(--radius-cards);overflow:auto}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;font:700 10px/1 var(--font-notioninter);letter-spacing:.08em;text-transform:uppercase;color:var(--color-stone);padding:10px 12px;border-bottom:1px solid rgba(0,0,0,.08);white-space:nowrap}
+td{padding:10px 12px;border-bottom:1px solid rgba(0,0,0,.06);vertical-align:top}
+.note{margin:8px 0 0;font-size:11px;color:var(--color-stone);line-height:1.5}
+.footer{padding:16px;text-align:center;font:500 11px/1 var(--font-notioninter);letter-spacing:.06em;text-transform:uppercase;color:var(--color-stone);border-top:1px solid rgba(0,0,0,.08)}
+</style></head><body>
+<div class="nav"><div class="left"><span>NOTION</span> <span style="color:var(--color-stone);font-weight:400">· DOSSIER</span> <span style="color:var(--color-stone);font-weight:400">· u/Wowmuchrya</span></div>
+<div class="right"><span class="pill blue">LLM-SYNTHESIZED</span> <span class="pill">30 comments</span></div></div>
+<div class="hero"><h1>u/Wowmuchrya — <em>dossier</em></h1>
+<p class="sub">A financially literate contrarian who cuts through AI hype with sarcastic one-liners and simple profitability math. <span style="color:var(--color-stone)">· 15 Aug 2026 · 15:06 UTC · 30 comments · V3.3 Seven-Signal</span></p></div>
+<div class="wrap">
+
+<section><div class="eyebrow">00 — ENGINE LAYER <em>· capacity & reliability</em></div>
+<div class="grid2" style="align-items:start">
+<div class="card accent-midnight">
+  <div style="font:700 11px/1 var(--font-notioninter);letter-spacing:.08em;text-transform:uppercase;color:var(--color-marigold)">Signature</div>
+  <div style="font-size:24px;font-weight:700;letter-spacing:-0.02em;margin-top:6px">C+ F+ A1+ A2~ P+</div>
+  <div class="lede" style="color:#cbd5ff">C Crystallized · F Fluid · A1 Instrumental · A2 Meta-Cog · P Pressure — 0-5 with polarity H/M/L</div>
+  <div style="margin-top:10px;display:grid;gap:6px">
+    <div style="font-size:12px"><b>Strong envelope:</b> Punchy verdicts anchored in basic profitability math; can dismantle a hype thesis in one line.</div>
+    <div style="font-size:12px"><b>Fragile envelope:</b> Thin on constructive alternatives; relies on sarcasm; may overstate certainty on political catalysts.</div>
+    <div style="font-size:12px"><b>Failure modes:</b> Dismisses nuance with 'lol' before fully engaging., Projects current hype-cycle pessimism onto structural winners., Treats a price drop as confirmation and a price rise as temporary distortion.</div>
+  </div>
+</div>
+<div class="table-wrap"><table><thead><tr><th>Axis</th><th>Score</th><th></th><th>Evidence anchor</th></tr></thead><tbody><tr><td><b>C</b></td><td style='min-width:120px'><div style="height:8px;background:var(--color-paper-warmth);border-radius:999px;overflow:hidden;border:1px solid rgba(0,0,0,.06)"><div style="width:80%;height:100%;background:var(--color-notion-blue)"></div></div></td><td class='mono'><b>4/5</b></td><td style='max-width:260px;color:var(--color-graphite)'>the answer is no</td></tr><tr><td><b>F</b></td><td style='min-width:120px'><div style="height:8px;background:var(--color-paper-warmth);border-radius:999px;overflow:hidden;border:1px solid rgba(0,0,0,.06)"><div style="width:80%;height:100%;background:var(--color-notion-blue)"></div></div></td><td class='mono'><b>4/5</b></td><td style='max-width:260px;color:var(--color-graphite)'>Lol Zuckerberg’s version of the future is far from what the actual future will be like.</td></tr><tr><td><b>A1</b></td><td style='min-width:120px'><div style="height:8px;background:var(--color-paper-warmth);border-radius:999px;overflow:hidden;border:1px solid rgba(0,0,0,.06)"><div style="width:80%;height:100%;background:var(--color-notion-blue)"></div></div></td><td class='mono'><b>4/5</b></td><td style='max-width:260px;color:var(--color-graphite)'>If you make $1000 a day and then as soon as you leave the office you light $990 on fire...</td></tr><tr><td><b>A2</b></td><td style='min-width:120px'><div style="height:8px;background:var(--color-paper-warmth);border-radius:999px;overflow:hidden;border:1px solid rgba(0,0,0,.06)"><div style="width:60%;height:100%;background:var(--color-marigold)"></div></div></td><td class='mono'><b>3/5</b></td><td style='max-width:260px;color:var(--color-graphite)'>What if google makes a phone that dominates the iphone? What if new startup company banana cookie pie makes a new phone?</td></tr><tr><td><b>P</b></td><td style='min-width:120px'><div style="height:8px;background:var(--color-paper-warmth);border-radius:999px;overflow:hidden;border:1px solid rgba(0,0,0,.06)"><div style="width:80%;height:100%;background:var(--color-notion-blue)"></div></div></td><td class='mono'><b>4/5</b></td><td style='max-width:260px;color:var(--color-graphite)'>Just go to 0 already.</td></tr></tbody></table></div>
+</div>
+<p class="note">Engine modulates all downstream layers. Directional, probabilistic, revisable. Anchors are short real phrases from corpus.</p>
+</section>
+
+<section><div class="eyebrow">01 — CORE COMMUNICATION & PERSONALITY <em>· Big Five + attributes</em></div>
+<div class="card" style="margin-top:10px">
+<div class="grid2">
+<div><div style="font:700 11px/1 var(--font-notioninter);letter-spacing:.06em;text-transform:uppercase;color:var(--color-stone)">Big Five (linguistically inferred)</div>
+<ul style="margin:8px 0 0;padding:0 0 0 16px;font-size:13px;line-height:1.6">
+<li><b>Openness:</b> High — curious about AI, China, tech supply chains, but filters new ideas through skeptical pattern-matching rather than novelty-seeking.</li>
+<li><b>Conscientiousness:</b> Med — does homework on GAAP, valuations, and insider selling, but posts in impulsive fragmentary bursts.</li>
+<li><b>Extraversion:</b> Low-Med — engages publicly and loves an audience, but only through argument; no personal or social disclosure.</li>
+<li><b>Agreeableness:</b> Low — mocks opponents with 'clowns', 'lol', and 'coping'; values being right over being liked.</li>
+<li><b>Neuroticism:</b> Med — quick to sense collapse and betrayal, but expresses it as contempt rather than anxiety.</li>
+</ul></div>
+<div><div style="font:700 11px/1 var(--font-notioninter);letter-spacing:.06em;text-transform:uppercase;color:var(--color-stone)">Attributes</div>
+<ul style="margin:8px 0 0;padding:0 0 0 16px;font-size:13px;line-height:1.6">
+<li><b>Enneagram:</b> 8w7 (counterphobic challenger) — attacks authority, hype, and incompetence; wants to expose who actually pays for the bubble.</li>
+<li><b>IQ band:</b> 120-135</li>
+<li><b>Leanings:</b> Skeptical libertarian-ish; anti-bailout, anti-bubble, distrusts both Big Tech narrative and Trump-era funneling.</li>
+<li><b>Reflective vs Reactive:</b> Reactive in tone, reflective in method — one-liners first, then spreadsheet-style reasoning when challenged.</li>
+<li><b>Thinking style:</b> Falsification-first: asks where the real profit is and who is left holding the bag before accepting any growth story.</li>
+<li><b>Pace:</b> Fast, staccato, with compressed analogies; expands into lists only when making a multi-step financial argument.</li>
+</ul></div>
+</div>
+</div>
+</section>
+
+<section><div class="eyebrow">02 — SIGNATURE STYLE <em>· linguistic fingerprint</em></div>
+<div class="grid2">
+<div class="card"><div style="font:700 11px/1 var(--font-notioninter);letter-spacing:.06em;text-transform:uppercase;color:var(--color-stone)">Vocabulary</div>
+<div style="margin-top:8px;font-size:12px;color:var(--color-stone)">Verbs</div><div style="margin-top:4px;display:flex;flex-wrap:wrap;gap:6px"><span class="pill">call out</span> <span class="pill">dismiss</span> <span class="pill">lampoon</span> <span class="pill">quantify</span> <span class="pill">analogize</span> <span class="pill">predict</span></div>
+<div style="margin-top:8px;font-size:12px;color:var(--color-stone)">Adjectives</div><div style="margin-top:4px;display:flex;flex-wrap:wrap;gap:6px"><span class="pill">sarcastic</span> <span class="pill">contrarian</span> <span class="pill">blunt</span> <span class="pill">finance-literate</span> <span class="pill">glib</span> <span class="pill">sharply funny</span></div>
+<div style="margin-top:8px;font-size:12px;color:var(--color-stone)">Transitions</div><div style="margin-top:4px;display:flex;flex-wrap:wrap;gap:6px"><span class="pill">because</span> <span class="pill">but</span> <span class="pill">if</span> <span class="pill">the problem is</span> <span class="pill">instead of</span> <span class="pill">what happens when</span></div>
+</div>
+<div class="card accent-marigold"><div style="font:700 11px/1 var(--font-notioninter);letter-spacing:.06em;text-transform:uppercase">Sentence & rhetoric</div>
+<p style="margin:8px 0 0;font-size:13px;line-height:1.5"><b>Sentence:</b> Short declaratives and rhetorical questions; one-liners act as verdicts.</p>
+<p style="margin:6px 0 0;font-size:13px;line-height:1.5"><b>Rhetoric:</b> Mocking reductio ad absurdum, profitability litmus tests, false-analogy traps, and cash-flow-based dismissal.</p>
+<p style="margin:6px 0 0;font-size:13px;line-height:1.5"><b>Delivery:</b> Meme-aware, condescending, sarcastic; sprinkles 'lol' and emoji as punctuation for disbelief.</p>
+</div>
+</div>
+</section>
+
+<section><div class="eyebrow">03 — EXAMPLE QUOTES <em>· grounded in corpus</em></div>
+<div class="card" style="margin-top:10px"><div class="quote"><blockquote>“If you make $1000 a day and then as soon as you leave the office you light $990 on fire it doesn’t make you smart for making $1000, but rather stupid for wasting $990.”</blockquote><div class="meta">r/ValueInvesting · <b style="color:var(--color-ink-black)">Uses a simple cash-flow analogy to refute revenue-focused bulls.</b></div></div><div class="quote"><blockquote>“Selling ai infrastructure to other people selling ai infrastructure to other people is and never will be a real business plan.”</blockquote><div class="meta">r/StockMarket · <b style="color:var(--color-ink-black)">Core thesis: no end-user revenue means no real business.</b></div></div><div class="quote"><blockquote>“They cannot integrate gemini into it in China, but if Qwen outperforms through internal metrics they sure can switch Gemini over to Qwen.”</blockquote><div class="meta">r/StockMarket · <b style="color:var(--color-ink-black)">Balanced recognition that regulation and merit can both drive AI model choices.</b></div></div><div class="quote"><blockquote>“If you borrow 100k from the bank and fail to pay it that’s your problem. If you borrow 100b then that the banks problem.”</blockquote><div class="meta">r/ValueInvesting · <b style="color:var(--color-ink-black)">Inverts moral hazard to explain why giant debt-funded bets are dangerous.</b></div></div><div class="quote"><blockquote>“Everyone already knows OpenAi can’t pay its commitments, so if the government stops funneling Oracle money it’ll collapse.”</blockquote><div class="meta">r/technology · <b style="color:var(--color-ink-black)">Links tech losses to politics and government subsidies, not just market dynamics.</b></div></div><div class="quote"><blockquote>“A lot of clowns look at PE and revenue instead of net profit.”</blockquote><div class="meta">r/ValueInvesting · <b style="color:var(--color-ink-black)">Contempt for superficial metrics; insists on bottom-line profitability.</b></div></div></div>
+</section>
+
+<section><div class="eyebrow">04 — STRUCTURE OF ARGUMENTS <em>· hook → development → closure</em></div>
+<div class="grid2">
+<div class="card"><p style="margin:0;font-size:13px;line-height:1.6"><b>Hook:</b> A sarcastic negation, a 'lol', or a direct contradiction of the consensus view.</p><p style="margin:8px 0 0;font-size:13px;line-height:1.6"><b>Development:</b> Builds from revenue quality to incentives, debt, capacity, and buyer concentration; uses everyday analogies to make abstract finance concrete.</p><p style="margin:8px 0 0;font-size:13px;line-height:1.6"><b>Closure:</b> Delivers a prediction or a challenge — often 'we can revisit this convo' at the next earnings, or a one-line death sentence.</p></div>
+<div class="card accent-sky"><div style="font:700 11px/1 var(--font-notioninter);letter-spacing:.06em;text-transform:uppercase;color:var(--color-stone)">Corpus sample</div><p class="lede">Quotes above are verbatim from corpus. Below is raw comment count and avg length for calibration.</p>
+<div class="grid2" style="margin-top:8px"><div class="kpi"><span>Comments</span><b>30</b></div><div class="kpi"><span>Avg words</span><b>49</b></div></div>
+</div>
+</div>
+</section>
+
+<section><div class="eyebrow">05 — PROBLEM-SOLVING <em>· how uncertainty is resolved</em></div>
+<div class="card"><p style="margin:0;font-size:13px;line-height:1.6"><b>Approach:</b> Falsification first: looks for why a thesis or company fails, then tests it with simple cash-flow analogies.</p>
+<ol style="margin:8px 0 0;padding:0 0 0 18px;font-size:13px;line-height:1.7">
+<li>Spot the shared story or valuation anomaly.</li><li>Strip out hype accounting (fake revenue, misreported shares, one-time effects).</li><li>Apply a real-economy test: would this survive if free money, bailouts, or government contracts stop?</li><li>Predict the structural loser/winner and take a contrarian position.</li>
+</ol></div>
+</section>
+
+<section><div class="eyebrow">06 — HUMOR, DRAMA & EMOTIONAL NUANCE</div>
+<div class="grid2">
+<div class="card"><p style="margin:0;font-size:13px;line-height:1.6"><b>Type:</b> Sarcasm and financial irony.</p><p style="margin:6px 0 0;font-size:13px;line-height:1.6"><b>Timing:</b> Immediate — the verdict lands before the explanation.</p><p style="margin:6px 0 0;font-size:13px;line-height:1.6"><b>Range:</b> Mostly one-liners and analogies; can stretch into satirical hypothetical companies.</p></div>
+<div class="card accent-coral"><p style="margin:0;font-size:13px;line-height:1.6"><b>Destabilizes when:</b> When an authority figure or popular narrative claims growth without showing net profit.</p><p class="lede" style="color:rgba(255,255,255,.85);margin-top:8px">Critical for persuasion and digital twin fidelity — where humor sharpens vs collapses.</p></div>
+</div>
+</section>
+
+<section><div class="eyebrow">07 — RESPONSE STRATEGIES & CLOSING TECHNIQUES</div>
+<div class="card"><p style="margin:0;font-size:13px;line-height:1.6"><b>Challenge handling:</b> If you defend a stock or company, he asks who actually pays, whether revenue is GAAP-real, and why debt holders or bagholders should care.</p><p style="margin:6px 0 0;font-size:13px;line-height:1.6"><b>Reframing:</b> Turns 'AI revenue' into infrastructure musical chairs, record earnings into peak earnings, and government contracts into political bribes.</p><p style="margin:6px 0 0;font-size:13px;line-height:1.6"><b>Closure:</b> Ends with a bet-like statement ('short Oracle in 2028', 'just go to 0'), leaving room to revisit if price disagrees.</p><p style="margin:6px 0 0;font-size:13px;line-height:1.6"><b>Aftertaste:</b> Entertaining but sharp; you remember the smirk more than the nuance.</p></div>
+</section>
+
+<section><div class="eyebrow">APPENDIX A — SEVEN-SIGNAL TABLE</div>
+<div class="table-wrap"><table><thead><tr><th>Layer</th><th>Question</th><th>Primary signals</th></tr></thead><tbody>
+<tr><td><b>Engine</b></td><td>Can they execute?</td><td>Speed, density, stress shifts</td></tr>
+<tr><td>MBTI</td><td>How they think</td><td>Syntax, abstraction</td></tr>
+<tr><td>PRISM</td><td>What they value</td><td>Moral framing</td></tr>
+<tr><td>QuEST</td><td>How they act</td><td>Tempo, pressure</td></tr>
+<tr><td>Reality Lens</td><td>What is real</td><td>Ontology, metaphor</td></tr>
+<tr><td>Cause & Craft</td><td>How they build</td><td>Evidence type</td></tr>
+<tr><td>Proof & Purpose</td><td>Why they speak</td><td>Ethical closure</td></tr>
+</tbody></table></div>
+</section>
+
+<section><div class="eyebrow">APPENDIX B — JSON RUBRIC <em>· AI-friendly persona_stack</em></div>
+<div class="card" style="background:var(--color-midnight-ink);color:#cbd5ff;border-color:var(--color-midnight-ink)">
+<div style="font:700 11px/1 var(--font-notioninter);letter-spacing:.06em;text-transform:uppercase;color:var(--color-marigold)">persona_stack + engine_metrics</div>
+<pre class="mono" style="margin:10px 0 0;white-space:pre-wrap;word-break:break-word;font-size:11px;line-height:1.5">{
+  "persona_stack": {
+    "MBTI": {
+      "type": "ENTP",
+      "weight": 0.9
+    },
+    "PRISM": {
+      "type": "FXMC",
+      "weight": 0.85
+    },
+    "QuEST": {
+      "type": "QDVF",
+      "weight": 0.9
+    },
+    "RealityLens": {
+      "type": "D-M-F-Ob",
+      "weight": 0.82
+    },
+    "CauseCraft": {
+      "type": "T-H-G-X",
+      "weight": 0.88
+    },
+    "ProofPurpose": {
+      "type": "Ex-Fo-Pr-Be",
+      "weight": 0.9
+    },
+    "ENGINE": {
+      "type": "C+F+AP",
+      "weight": 0.93
+    }
+  },
+  "engine_metrics": {
+    "knowledge_density": "C+",
+    "refactoring_velocity": "F+",
+    "augmentation_affinity": "A",
+    "stress_poise": "P"
+  }
+}</pre>
+</div>
+<p class="note">Heuristic mode uses lexicon/vocab signals. LLM mode fills every field with evidence anchors. Re-run with --limit 500 for deeper fidelity.</p>
+</section>
+
+</div>
+<div class="footer">NOTION · Communication Dossier · u/Wowmuchrya · 15 Aug 2026 · 15:06 UTC · Arctic Shift archive · Notion tokens #f6f5f4 / #ffb110 / 12px cards · Single-file HTML — opens offline</div>
+</body></html>

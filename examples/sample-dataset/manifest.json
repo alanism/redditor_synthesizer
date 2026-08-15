@@ -1,0 +1,74 @@
+{
+  "subreddit": "stocks",
+  "target_users": 22,
+  "comments_per_user": 30,
+  "model": "deepseek-v4-flash",
+  "started_at": "2026-08-15T15:05:46.689857+00:00",
+  "completed": 27,
+  "failed": [
+    {
+      "author": "Yee4614",
+      "error": "HTTP Error 422: Unprocessable Entity"
+    },
+    {
+      "author": "Unable-Bathroom8957",
+      "error": "only 5 comments (<20)"
+    },
+    {
+      "author": "Unable-Bathroom8957",
+      "error": "only 5 comments (<20)"
+    },
+    {
+      "author": "GrumpyOutsider",
+      "error": "The read operation timed out"
+    },
+    {
+      "author": "Unable-Bathroom8957",
+      "error": "only 5 comments (<20)"
+    },
+    {
+      "author": "GrumpyOutsider",
+      "error": "only 18 comments (<20)"
+    },
+    {
+      "author": "Unable-Bathroom8957",
+      "error": "only 5 comments (<20)"
+    },
+    {
+      "author": "GrumpyOutsider",
+      "error": "The read operation timed out"
+    },
+    {
+      "author": "Unable-Bathroom8957",
+      "error": "only 5 comments (<20)"
+    },
+    {
+      "author": "GrumpyOutsider",
+      "error": "only 18 comments (<20)"
+    }
+  ],
+  "authors": [
+    "Wowmuchrya",
+    "ga643953",
+    "95Daphne",
+    "dritu_",
+    "likwitsnake",
+    "TimeTravelingChris",
+    "anotherloserhere",
+    "Illustrious-Boss9356",
+    "Yee4614",
+    "Scott7894",
+    "IceShaver",
+    "JustBrowsinAndVibin",
+    "Sad-Smoke-2229",
+    "Unable-Bathroom8957",
+    "hardware2win",
+    "Pete_The_Pilot",
+    "1foxyboi",
+    "Brewmentationator",
+    "GrumpyOutsider",
+    "hofmann419",
+    "IllustriousGas8850",
+    "Ok-Adeptness-5834"
+  ]
+}
