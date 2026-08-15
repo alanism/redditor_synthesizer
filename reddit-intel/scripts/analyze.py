@@ -19,7 +19,11 @@ might must can this that these those it its they them their what which who whom 
 why about over under up down out in on at to of as by from per via just very more
 most some any all each every own same so than too also only not no yes my your his
 her our its i me you he she we us im ive id dont cant wont isnt arent wasnt
-""".split())
+were hasnt havent hadnt shouldnt wouldnt couldnt mustnt needn wasnt doesnt didnt
+youre youre hes shes theyre were youre weve theyve youve youre doesnt wont cant shall
+am pm via etc removed deleted help need want get like one got would really still even
+know think make going come take back much dont im know going think want need look let
+""".split()) | set(["don", "him", "like", "old", "year", "get", "want", "time", "work", "feel", "know", "think", "make", "going", "back", "much", "really", "still", "even", "removed"])
 
 SENT_POS = set("love great amazing awesome excellent fantastic wonderful best good nice cool fun happy glad win winning love loved recommend thanks thank helpful useful brilliant perfect love love".split())
 SENT_NEG = set("hate bad terrible awful worst horrible sucks hate hated useless worst trash garbage scam fake toxic hate angry frustrated annoyed disappointed worst".split())
@@ -95,8 +99,28 @@ def discover_authors(subreddit, target=100) -> list:
         if len(batch)<5: break
     return authors
 
+# Tokens that are artifacts of contraction-splitting ("don't" -> "don", "didn't" -> "didn", etc.) — always drop
+ARTIFACT_TOKENS = set(["don","didn","doesn","isn","aren","wasn","weren","hasn","haven","hadn","wouldn","couldn","shouldn","won","can","im","ive","id","ill","hes","shes","theyre","youre","weve","theyve","youve","him","like","old","year","get","want","time","work","feel","removed","deleted"])
+
+def _clean_text(text: str) -> str:
+    # Normalize contractions before tokenizing so "don't" -> "dont" not "don"
+    s = (text or "").lower()
+    # Expand common contractions to avoid artifact tokens
+    s = s.replace("’","'").replace("`","'")
+    s = re.sub(r"n't\b", " not", s)
+    s = re.sub(r"'re\b", " are", s)
+    s = re.sub(r"'ve\b", " have", s)
+    s = re.sub(r"'ll\b", " will", s)
+    s = re.sub(r"'d\b", " would", s)
+    s = re.sub(r"'m\b", " am", s)
+    s = re.sub(r"'s\b", " is", s)
+    return s
+
 def tokenize(text: str):
-    return re.findall(r"[a-z]{3,}", (text or "").lower())
+    cleaned = _clean_text(text)
+    toks = re.findall(r"[a-z]{3,}", cleaned)
+    # drop artifacts + stopwords
+    return [w for w in toks if w not in ARTIFACT_TOKENS and w not in STOPWORDS and len(w) >= 3]
 
 def extract_keywords(posts, top_k=30):
     cnt=Counter()
@@ -108,15 +132,167 @@ def extract_keywords(posts, top_k=30):
                 cnt[tok]+=1
     return cnt.most_common(top_k)
 
+def extract_phrases(posts, top_k=12):
+    """Bigram phrase extraction — phrase-aware grouping (e.g. potty training, baby gate)."""
+    cnt=Counter()
+    for p in posts:
+        title=p.get("title","") or ""
+        toks=tokenize(title)
+        for a,b in zip(toks, toks[1:]):
+            phrase=f"{a} {b}"
+            # filter low-signal bigrams where both words are too generic
+            if a in STOPWORDS or b in STOPWORDS: 
+                continue
+            if a in ARTIFACT_TOKENS or b in ARTIFACT_TOKENS:
+                continue
+            cnt[phrase]+=1
+    # also check selftext for extra signal but title-weighted 2x
+    for p in posts:
+        body=p.get("selftext","") or ""
+        toks=tokenize(body[:400])
+        for a,b in zip(toks, toks[1:]):
+            if a in STOPWORDS or b in STOPWORDS: continue
+            if a in ARTIFACT_TOKENS or b in ARTIFACT_TOKENS: continue
+            cnt[phrase]+=0.3 if (phrase:=f"{a} {b}") else 0
+    return cnt.most_common(top_k)
+
+# Conversation intent — rule-based (advice-seeking, reassurance, venting, personal story, product recommendation, safety concern)
+INTENT_PATTERNS = {
+    "advice-seeking": [r"\bhow (do|to|should|can) ", r"\bwhat (should|do|would) ", r"\badvice\b", r"\bhelp\b.*\?", r"\?", r"\btips\b", r"\bany (advice|tips|suggestions)\b"],
+    "reassurance": [r"\bis (this|it) normal", r"\bam i (overreacting|wrong|bad)", r"\bnormal\b", r"\bworried\b", r"\banxiety\b", r"\breassurance\b"],
+    "venting": [r"\bso (tired|frustrated|done|over it)\b", r"\bvent\b", r"\bexhausted\b", r"\brant\b", r"\bcan't (take|do) (this|it) anymore\b"],
+    "personal story": [r"\bmy (daughter|son|kid|baby|toddler|child)", r"\bwe (did|went|tried)\b", r"\byear old\b", r"\bmy (wife|husband|partner)\b"],
+    "product recommendation": [r"\brecommend\b", r"\bbest (.*)(for|to buy)", r"\bwhich .*should i (buy|get)\b", r"\bcar seat\b", r"\bstroller\b", r"\bbaby gate\b"],
+    "safety concern": [r"\bsafe\b", r"\bsafety\b", r"\bworried about\b", r"\bchoking\b", r"\ballerg", r"\bunlock\b.*\bgate\b", r"\bphone number\b"],
+}
+
+def classify_intent(text: str) -> str:
+    s=_clean_text(text or "")
+    if not s.strip():
+        return "general"
+    scores={}
+    for label, pats in INTENT_PATTERNS.items():
+        scores[label]=sum(1 for pat in pats if re.search(pat, s))
+    # advice-seeking is common, require explicit signal; tie-break by order
+    best=max(scores, key=lambda k: scores[k])
+    if scores[best]==0:
+        # fallback: question mark -> advice-seeking, else personal story heuristic
+        if "?" in (text or ""): return "advice-seeking"
+        if any(w in s for w in ["my daughter","my son","my kid","my baby"]): return "personal story"
+        return "general"
+    return best
+
+def intent_breakdown(posts):
+    cnt=Counter()
+    for p in posts:
+        title=p.get("title","") or ""
+        body=p.get("selftext","") or ""
+        cnt[classify_intent(title+" "+body)]+=1
+    total=len(posts) or 1
+    return {"counts": dict(cnt), "total": len(posts), "pct": {k: round(v/total*100) for k,v in cnt.items()}}
+
+def timeline_by_day(posts):
+    """Group posts by day (UTC) for 7-day timeline."""
+    from datetime import datetime, timezone
+    buckets=defaultdict(list)
+    for p in posts:
+        ts=p.get("created_utc",0) or 0
+        if not ts: continue
+        day=datetime.fromtimestamp(ts, tz=timezone.utc).strftime("%Y-%m-%d")
+        buckets[day].append(p)
+    # fill 7 days
+    if buckets:
+        days=sorted(buckets.keys())
+        return {d: buckets[d] for d in days[-7:]}
+    return {}
+
+def theme_heatmap_data(posts, themes):
+    """Theme x day matrix — count of posts per theme per day."""
+    from datetime import datetime, timezone
+    days=sorted(timeline_by_day(posts).keys())
+    if not days or not themes:
+        return {"days": [], "themes": [], "matrix": []}
+    matrix=[]
+    for t in themes:
+        kw=t.get("keyword","")
+        row=[]
+        for d in days:
+            cnt=sum(1 for p in timeline_by_day(posts)[d] if kw in set(tokenize(p.get("title","")+" "+(p.get("selftext","") or ""))))
+            row.append(cnt)
+        matrix.append(row)
+    return {"days": days, "themes": [t.get("label","") for t in themes], "keywords": [t.get("keyword","") for t in themes], "matrix": matrix}
+
+def quadrant_data(themes):
+    """Volume vs engagement — each theme's post count vs median engagement."""
+    out=[]
+    for t in themes:
+        posts=t.get("posts",[])
+        count=t.get("count", len(posts))
+        engagements=[(p.get("score",0) or 0)+(p.get("num_comments",0) or 0) for p in posts]
+        median=sorted(engagements)[len(engagements)//2] if engagements else 0
+        mean=sum(engagements)/len(engagements) if engagements else 0
+        out.append({"label": t.get("label",""), "keyword": t.get("keyword",""), "count": count, "median_engagement": median, "mean_engagement": round(mean,1)})
+    return out
+
+def collection_meta(posts, subreddit=""):
+    """Collection window, sample size, removed posts — for methodology box."""
+    from datetime import datetime, timezone
+    total=len(posts)
+    removed=sum(1 for p in posts if (p.get("selftext","") or "").strip().lower() in ("[removed]","[deleted]") or p.get("title","").strip().lower() in ("[removed]","[deleted]"))
+    selftext_removed=sum(1 for p in posts if (p.get("selftext","") or "").strip().lower() in ("[removed]","[deleted]"))
+    if posts and any(p.get("created_utc") for p in posts):
+        ts=[p.get("created_utc",0) for p in posts if p.get("created_utc")]
+        lo=min(ts); hi=max(ts)
+        window=f"{datetime.fromtimestamp(lo, tz=timezone.utc).strftime('%d %b %Y %H:%M')} → {datetime.fromtimestamp(hi, tz=timezone.utc).strftime('%d %b %Y %H:%M')} UTC"
+        span_days=round((hi-lo)/86400,1) if hi>lo else 0
+    else:
+        window="—"; span_days=0
+    avg_score=sum(p.get("score",0) or 0 for p in posts)/max(total,1) if total else 0
+    return {"total": total, "removed": removed, "selftext_removed": selftext_removed, "window": window, "span_days": span_days, "avg_score": round(avg_score,2), "subreddit": subreddit}
+
+def confidence_assessment(posts, themes):
+    """Honest confidence — based on sample size + signal strength."""
+    n=len(posts)
+    if n==0: return {"level": "no data", "reason": "No posts in window.", "color": "#b3b3b3"}
+    # Weak signals: very low engagement, many removed, few themes
+    removed_ratio=sum(1 for p in posts if (p.get("selftext","") or "").strip().lower()=="[removed]")/max(n,1)
+    avg_eng=sum((p.get("score",0) or 0)+(p.get("num_comments",0) or 0) for p in posts)/max(n,1)
+    if n<8 or removed_ratio>0.4 or avg_eng<1.5:
+        return {"level": "low", "reason": f"Small sample (n={n}) or low engagement (avg {avg_eng:.1f}) — treat themes as directional, not definitive.", "color": "#d97706"}
+    if n<15 or avg_eng<3:
+        return {"level": "moderate", "reason": f"n={n}, avg engagement {avg_eng:.1f} — useful for direction, not precision.", "color": "#6e6e6e"}
+    return {"level": "moderate-high", "reason": f"n={n}, avg engagement {avg_eng:.1f} — themes are stable for this window.", "color": "#111"}
+
 def cluster_themes(posts, k=4):
     """Very light keyword-overlap clustering. Returns list of {label, count, post_ids, keywords}."""
     if not posts:
         return []
     # score keywords then assign each post to dominant keyword cluster
     kw_counts=dict(extract_keywords(posts, top_k=40))
-    # seed clusters by top keywords that are distinct
+    phrase_counts=dict(extract_phrases(posts, top_k=20))
+    # seed clusters by top keywords that are distinct — prefer phrases where they dominate
     seeds=[]
-    for w,c in extract_keywords(posts, top_k=20):
+    # inject top phrase unigrams as seeds if phrase is strong
+    phrase_unigrams=[]
+    for phrase, cnt in phrase_counts.items():
+        if cnt>=2:
+            for w in phrase.split():
+                if w not in phrase_unigrams and w not in seeds:
+                    phrase_unigrams.append(w)
+    # merge phrase unigrams early so "potty training" -> seeds include potty,training
+    ranked_keywords=extract_keywords(posts, top_k=30)
+    # interleave phrase unigrams with keyword ranking
+    merged=[]
+    seen=set()
+    for w,_ in ranked_keywords:
+        if w not in seen:
+            merged.append(w); seen.add(w)
+        # after each 2 keywords, inject a phrase unigram if useful
+        if len(merged)%3==0 and phrase_unigrams:
+            cand=phrase_unigrams.pop(0)
+            if cand not in seen and cand not in STOPWORDS and cand not in ARTIFACT_TOKENS:
+                merged.append(cand); seen.add(cand)
+    for w in merged[:24]:
         if all(w not in s and s not in w for s in seeds):
             seeds.append(w)
         if len(seeds)>=k: break

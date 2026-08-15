@@ -1,7 +1,7 @@
 ---
 name: reddit-intel
 description: "Use when analyzing Reddit subreddits or redditors: pulse reports, persona synthesis, or synthetic datasets."
-version: 1.1.0
+version: 1.2.0
 author: Hermes Agent
 license: MIT
 metadata:
@@ -18,7 +18,7 @@ Three intelligence products on one data backbone (Arctic Shift API). Strictly to
 
 | Product | Design System | Input | Output | Use |
 |---------|--------------|-------|--------|-----|
-| **Pulse** | `DESIGN-Monocle.md` | `r/<subreddit>` + window | Single-file newspaper HTML (top 3-5 posts, themes, sentiment, trends) | Quick read on what's hot and where a community is moving |
+| **Pulse** | `DESIGN-Monocle.md` (tokens only; report never says Monocle) | `r/<subreddit>` + window | Single-file Intelligence Brief HTML: generated title, executive briefing, activity timeline, what changed, theme landscape (volume vs engagement + heatmap), representative posts, sentiment + intent, keywords + methodology | What is happening, what is changing, and what evidence supports it (30-sec brief) |
 | **Persona** | `DESIGN-Notion.md` | `u/<author>` or `r/<sub>` sample | Single-file dossier HTML populated from V3.3 Engine Template | Debate prep or high-fidelity digital twin |
 | **Dataset** | Both (index = Monocle, dossiers = Notion) | `r/<sub>` + N users | Folder with N dossiers + `index.html` + `manifest.json` | Synthetic population for product/marketing simulation |
 | **Sample Size** | `DESIGN-Cosmos.md` | `N` + confidence + margin (+ optional `r/<sub>` + topic) | Deterministic `n` + Cosmos intelligence brief HTML | Decide how many redditors to pull — with x at y confidence and z margin, we think ... and we recommend abc. |
@@ -48,6 +48,7 @@ curl -s "https://arctic-shift.photon-reddit.com/api/comments/search?author=spez&
 # -- Pulse: newspaper for a subreddit (Monocle) --
 python ~/.hermes/skills/research/reddit-intel/scripts/pulse.py --subreddit parenting --window 7d --out ./pulse-parenting.html
 python ~/.hermes/skills/research/reddit-intel/scripts/pulse.py --subreddit vietnam --limit 25 --top 5 --out ./pulse-vietnam.html
+# -- Pulse now generates a human title (no MONOCLE). Structure: Briefing → Activity → What changed → Themes → Posts → Sentiment+Intent → Keywords+Method
 
 # -- Persona: single redditor dossier (Notion) -- recommended: deepseek-v4-flash (prompt-cache + quality)
 python ~/.hermes/skills/research/reddit-intel/scripts/persona.py --author spez --limit 100 --model deepseek-v4-flash --out ./dossier-spez.html
@@ -91,8 +92,8 @@ python ~/.hermes/skills/research/reddit-intel/scripts/synthetic_survey.py --pers
               ┌──────────────────┼──────────────────┐
               ▼                  │                   ▼
    ┌───────────────────┐  ┌──────▼──────┐  ┌─────────────────┐
-   │ Monocle Newspaper │  │  Notion     │  │ Dataset Folder  │
-   │ pulse-*.html      │  │ dossier-*.html │ │ index.html (Monocle)│
+   │ Intelligence Brief│  │  Notion     │  │ Dataset Folder  │
+   │ pulse-*.html      │  │ dossier-*.html │ │ index.html (Brief)   │
    │ cream #fdfcf3     │  │ paper #f6f5f4│  │ dossiers/*.html (Notion)│
    │ Plantin serif     │  │ NotionInter │  │ manifest.json   │
    │ yellow #ffc500    │  │ accent cards│  │ personas.jsonl  │
