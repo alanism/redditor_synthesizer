@@ -1,198 +1,162 @@
 # Redditor Synthesizer
 
-> Fork of [ArthurHeitmann/arctic_shift_ui](https://github.com/ArthurHeitmann/arctic_shift_ui) (SvelteKit explorer for the [Arctic Shift](https://github.com/ArthurHeitmann/arctic_shift) Reddit archive at `https://arctic-shift.photon-reddit.com`) with **reddit-intel** — a skill + scripts to turn any `r/<subreddit>` into 3 runnable pipelines on a Hermes agent: **Monocle newspaper → Notion dossiers → Cosmos sample-size → Synthetic survey**.
+**Understand any online community by reading what its members actually say.**
 
-Upstream overview page: https://github.com/ArthurHeitmann/arctic_shift
+This tool takes a Reddit community (like r/parenting or r/stocks), reads thousands
+of real comments, and turns them into clear, easy-to-read reports you can open in
+any web browser. It answers questions like:
 
-## What reddit-intel adds
+- *What is everyone talking about right now?*
+- *Who are the people here, and how do they think?*
+- *If we showed them our product idea, what would they say?*
 
-| Pipeline | Input | Output | Design | Script |
-|----------|-------|--------|--------|--------|
-| **Pulse (Pipeline A)** | `r/<subreddit>` | Single-file Monocle HTML: 3-5 top posts, themes, sentiment, trends | `docs/DESIGN/DESIGN-Monocle.md` | `reddit-intel/scripts/pulse.py` |
-| **Personas (Pipeline B)** | `r/<subreddit>` or `u/<author>` | V3.3 Seven-Signal Engine dossiers (Notion HTML + JSON rubric) | `docs/DESIGN/DESIGN-Notion.md` | `reddit-intel/scripts/persona.py` / `build_dataset.py` |
-| **Survey (Pipeline 3)** | `personas.jsonl` + instrument | 12-Q simulated responses + Cosmos report | `docs/DESIGN/DESIGN-Cosmos.md` | `reddit-intel/scripts/synthetic_survey.py` |
-| **Sample Size (Pipeline C)** | population or `r/<subreddit>` | Deterministic n + Cosmos brief | `docs/DESIGN/DESIGN-Cosmos.md` | `reddit-intel/scripts/sample_size.py` |
-
-Live demos (r/stocks Q2 Evidence Stack **6.7/7, 100% top-2-box**; r/parenting file-first **6.8/7**) are archived as `examples/`.
-
-## Quick Start — Run 3 pipelines end-to-end
-
-### One-time setup
-
-```bash
-# Requires Python 3.9+, no extra pip packages (stdlib only). LLM is optional.
-git clone https://github.com/alanism/redditor_synthesizer.git
-cd redditor_synthesizer
-
-# Optional: keep the SvelteKit explorer (original app)
-npm install
-npm run dev   # or: npm run build && npm run preview
-
-# Set a model key so personas + surveys use real LLM instead of heuristics.
-# DeepSeek V4 Flash is the recommended default (prompt-cache ~0.1x, quality).
-# SKILL.md: the harness loads this automatically via reddit-intel's _load_env_file.
-export DEEPSEEK_API_KEY=...        # preferred (direct api.deepseek.com)
-# or fallback:
-export OPENAI_API_KEY=...
-# Write to one of these so Hermes subshells see it without export:
-#   ~/.hermes/.env  or  ~/.hermes/profiles/hermozi/.env
-```
-
-On a Hermes harness the key lives in `~/.hermes/profiles/hermozi/.env` / `~/.hermes/.env` and `reddit-intel/scripts/analyze.py:_load_env_file()` loads it automatically — no `export` needed per shell. The harness also exposes `--model deepseek-v4-flash` (prompt-cache: system=V3.3 prefix ~2484 chars, user=corpus ~1k variable).
-
-### 3 pipelines — r/stocks example
-
-```bash
-# Preflight — fail fast (env + API)
-python -c "from reddit_intel.scripts.analyze import _load_env_file; _load_env_file(); import os; k=os.getenv('DEEPSEEK_API_KEY') or os.getenv('OPENAI_API_KEY') or 'MISSING'; print(k[:12]+'…' if k!='MISSING' else 'MISSING')"
-python reddit-intel/scripts/analyze.py --subreddit stocks --limit 5
-python reddit-intel/scripts/pulse.py --help
-python reddit-intel/scripts/sample_size.py --help
-
-# Pipeline A: Pulse newspaper (Monocle, offline single-file HTML) + Cosmos sizing
-OUT=~/Documents/Vibe\ Code/reddit-intel-stocks   # or ./demo-stocks
-python reddit-intel/scripts/pulse.py \
-  --subreddit stocks --limit 30 --top 5 \
-  --out "$OUT/pulse-stocks.html"
-
-python reddit-intel/scripts/sample_size.py \
-  --subreddit stocks --confidence 95 --margin 5 \
-  --html-out "$OUT/Cosmos-r-stocks-95-5-required.html"
-# → N=8,418,548 @95%/±5% → n=385, pull 482, pilot 50  (thin-aware: 35% for N<500k, 25% otherwise)
-python reddit-intel/scripts/sample_size.py --subreddit stocks --confidence 95 --margin 3 \
-  --html-out "$OUT/Cosmos-r-stocks-95-3-tighter.html"
-
-# Pipeline B: 20-dossier dataset (Notion, deepseek-v4-flash)
-# 180s shell limit: 20 via deepseek ≈300s at concurrency 2 — use checkpointing (re-run resumes)
-# or concurrency 4 / timeout 600 / background=True for one-shot.
-python reddit-intel/scripts/build_dataset.py \
-  --subreddit stocks --users 20 --comments-per-user 30 \
-  --out "$OUT/dataset-pilot-20" --model deepseek-v4-flash --concurrency 2
-
-# Pipeline 3: Decision > Prediction extension interest survey (12 Qs, --instrument)
-# Default instrument (no --instrument): UCC Hermes Thrice Great (SOP v6, 11 instruments + M/C/M/F/N)
-# Here: Decision > Prediction packet (Decision_Prediction_Product_Packet.md) × Hermes extension
-python reddit-intel/scripts/synthetic_survey.py \
-  --personas "$OUT/dataset-pilot-20/personas.jsonl" \
-  --instrument reddit-intel/instruments/survey-instrument-decision-prediction.json \
-  --out "$OUT/survey-simulation" --model deepseek-v4-flash --concurrency 2
-# → survey-simulation/report.html (Cosmos), responses.jsonl/csv, aggregates.json
-
-# Or UCC Hermes default (no --instrument):
-python reddit-intel/scripts/synthetic_survey.py \
-  --personas "$OUT/dataset-pilot-20/personas.jsonl" \
-  --out "$OUT/survey-simulation-ucc" --model deepseek-v4-flash --concurrency 2
-
-# Heuristic-only (no LLM, no key) still produces valid HTML/JSON for pipeline testing:
-python reddit-intel/scripts/build_dataset.py --subreddit stocks --users 20 --out /tmp/demo --no-llm
-python reddit-intel/scripts/synthetic_survey.py --personas /tmp/demo/personas.jsonl --out /tmp/demo/survey --no-llm
-```
-
-## Rounds of surveys — iterate positioning/pricing on the same personas
-
-Once you have a dataset (`dataset-*/personas-30.jsonl`), you can run any number
-of survey **rounds** against the same personas — no new fetching. Each round is
-a new instrument + output dir, checkpointed via `responses.jsonl` (re-running
-resumes, skipping completed authors).
-
-```bash
-# 1. Short custom instruments (2+ single_choice questions, % per option):
-#    use ai_use_survey.py — it accepts ANY N questions via --instrument.
-#    (synthetic_survey.py is hardcoded to the 12-Q shape; ai_use_survey is the generic one.)
-
-# Pilot FIRST on a random 20 rich personas (~2 min at c3) — direction gate, not share:
-python3 - <<'EOF'
-import json, random
-rows=[json.loads(l) for l in open("$OUT/dataset-385/personas-30.jsonl")]
-rich=[r for r in rows if r.get("big_five") and r.get("engine") and r.get("quotes") and r.get("one_line")]
-random.seed(20260816)  # fixed seed = reproducible sample
-open("$OUT/dataset-385/personas-20-random.jsonl","w").write(
-  "\n".join(json.dumps(r,ensure_ascii=False) for r in random.sample(rich,20)))
-EOF
-
-# 2. Run the instrument on the pilot (read DIRECTION; 100% columns are instrument artifacts)
-python reddit-intel/scripts/ai_use_survey.py \
-  --personas "$OUT/dataset-385/personas-20-random.jsonl" \
-  --instrument examples/positioning-instrument.json \
-  --out "$OUT/survey-positioning-20" --model deepseek-v4-flash --concurrency 3
-
-# 3. If direction is good, run the full population (~25-35 min for 7-Q at c3):
-python reddit-intel/scripts/ai_use_survey.py \
-  --personas "$OUT/dataset-385/personas-30.jsonl" \
-  --instrument examples/positioning-instrument.json \
-  --out "$OUT/survey-positioning-385" --model deepseek-v4-flash --concurrency 3
-# → report.html (mono design), aggregates.json (share % per option per Q), responses.jsonl/csv
-```
-
-**Reading rule (Hormozi):** don't trust what respondents say they like — watch
-which offer they'd buy today (Q6) and which line wins head-to-head (Q1). Q2
-reveals the wedge; Q3 tests whether "we handle everything" converts the
-undecided block; Q7 identifies the conversion trigger for a fielded pilot.
-
-**Narrative report (optional, per round):** the mono grid is data; for a
-stakeholder deliverable, wrap it in a Thompson-style editorial × Monocle-design
-single-file HTML with a pilot postscript + Hormozi operator note (see the
-reddit-dataset-ops skill reference for the exact recipe). Every number must be
-pulled live from `aggregates.json`/`responses.jsonl` — never hardcoded.
-
-**Filter before surveying (Alan's standing preference):** build
-`personas-30.jsonl` (`comments >= 30`) and point instruments at it, not the
-full `personas.jsonl`. Pilot rows may carry `comments: null` — backfill the
-count from the seed pilot jsonl first.
-
-### Open the results (offline, single-file)
-
-- `pulse-*.html` — Monocle newspaper on `#fdfcf3` (Plantin), yellow `#ffc500` ≤1 accent, `1px #d9d9d9` hairlines, `0px` card radius.
-- `Cosmos-*.html` — Cosmos brief on `#f7f5f3` linen, `#0d0d0d` ink, `16px` cards. States: *"With X population at Y% / ±Z%, we think … and we recommend pull + pilot."*
-- `dataset-pilot-20/dossiers/u_*.html` — Notion dossiers on `#f6f5f4` warm canvas, white `12px` cards, marigold/coral/sky/midnight rotation. Each links to its JSON sidecar (`u_*.json` with `engine`, `big_five`, `quotes`, `persona_stack`).
-- `survey-simulation/report.html` — Cosmos report (aggregates + methodology + individual cards → dossiers).
-
-See `examples/` for sample HTMLs from the r/stocks run.
-
-## What works like this harness
-
-- There is no installation step for `reddit-intel` beyond `export DEEPSEEK_API_KEY` (or `~/.hermes/.env`). All 6 scripts are stdlib-only, single-file HTML, offline-openable.
-- Hermes harness convention: the active profile's env file is `~/.hermes/profiles/hermozi/.env`; `analyze.py` reads both `~/.hermes/profiles/hermozi/.env` and `~/.hermes/.env` so background/terminal subshells see the key without `export`. On plain machines, `export DEEPSEEK_API_KEY` is enough.
-- Recommended model is `deepseek-v4-flash` everywhere (`--model deepseek-v4-flash` default). `analyze.py:try_llm(max_tokens=None)` auto-sets `12000` for deepseek (reasoning) vs `3000` otherwise, with `reasoning_content` fallback — callers should not set `max_tokens` manually.
-- End-to-end the harness uses 4 profile runs (homeschool, parenting, stocks): same commands, different `--subreddit` / `--instrument`.
-
-## Hermes Skill — install like a harness agent
-
-On a [Hermes](https://github.com/hermes) agent the same SKILL.md is loadable as a skill:
-
-```bash
-# Clone this repo next to your hermes skills, or copy reddit-intel/ into:
-#   ~/.hermes/skills/research/reddit-intel/   (harness global)
-#   ~/.hermes/profiles/hermozi/skills/research/reddit-intel/
-cp -r reddit-intel ~/.hermes/skills/research/reddit-intel
-# The agent can now `skill_view(name='reddit-intel')` and call the scripts.
-```
-
-Contract is in `reddit-intel/SKILL.md` v1.1.0 (328 lines) — pipelines, data flow, prompt-caching (system=V3.3/instrument prefix), thin-rate (`recommend_pull(population=)` 35%/25%), 180s checkpointing, design tokens, verification checklists.
-
-## Related
-
-- **Upstream explorer:** [ArthurHeitmann/arctic_shift_ui](https://github.com/ArthurHeitmann/arctic_shift_ui) / [arctic_shift](https://github.com/ArthurHeitmann/arctic_shift) — the SvelteKit search UI and API (`https://arctic-shift.photon-reddit.com`, `limit 1–100`, `after = last.created_utc * 1000`, polite `1 req/sec`).
-- **Design systems:** `docs/DESIGN/DESIGN-Monocle.md`, `DESIGN-Notion.md`, `DESIGN-Cosmos.md` + `reddit-intel/references/`.
-- **Template:** V3.3 Seven-Signal Engine (`reddit-intel/references/template-v33.md`) + `UNIVERSAL … V3.3` upstream.
-- **Instruments:** `reddit-intel/instruments/survey-instrument-decision-prediction.json` (12 Qs, Decision_Prediction_Product_Packet grounded); default UCC Hermes instrument embedded in `synthetic_survey.py` (`SURVEY_INSTRUMENT`).
-- **Demos:** `examples/pulse-stocks.html`, `examples/Cosmos-*.html`, `examples/sample-dataset/`, `examples/sample-survey/report.html`.
-
-## Upstream `arctic_shift_ui` notes (kept intact)
-
-The original SvelteKit app is in `src/` unchanged. `npm run dev` / `npm run build` still work as upstream documents. `reddit-intel/` sits alongside it — no shared state except the Arctic Shift API base `https://arctic-shift.photon-reddit.com`.
-
-## Removal
-
-Archived data; removal requests as documented upstream: https://github.com/ArthurHeitmann/arctic_shift#contact--removal-requests
+You don't need to be a programmer to read the results — every report is a single
+HTML file that opens like a webpage, on any computer, with no internet required.
 
 ---
 
-## Develop / Build (SvelteKit)
+## What it does (in plain English)
+
+| You ask | What it gives you | Think of it as |
+|---------|-------------------|----------------|
+| **"What's happening in this community?"** | A one-page newspaper: the hot topics, the mood, what changed this week | A community weather report |
+| **"Who are the people here?"** | Detailed profiles of the most active members — their style, values, hot buttons, and how they talk | A focus group with 20–400 people |
+| **"How big a sample do I need?"** | A simple math answer: how many people to study so your results are trustworthy | A sample-size calculator |
+| **"What would they think of my idea?"** | Simulated answers to YOUR survey questions, from the perspective of each community member | A test market before you build anything |
+
+The reports are **simulations**, not real surveys — they're the tool's best guess
+at how a community would react, based on what those people have actually written.
+Think of them as a well-informed rehearsal before you spend real money on the
+real thing.
+
+---
+
+## What you get
+
+Everything the tool produces is a simple file:
+
+- **Reports** — `.html` files. Open them in any browser. That's it.
+- **Data** — small `.json` files with the raw numbers, if you want to dig deeper
+  or put them in a spreadsheet.
+
+No databases, no servers, no apps to install. Just files.
+
+---
+
+## Quick start
+
+### Step 1: Get the code
 
 ```bash
-npm install
-npm run dev         # with --open to open in browser
-npm run build       # production build to ./build
-npm run preview
+git clone https://github.com/alanism/redditor_synthesizer.git
+cd redditor_synthesizer
 ```
+
+### Step 2: (Recommended) Add an AI key
+
+The tool works fine without this, but the reports get much smarter with an AI
+model doing the reading. The easiest option is a DeepSeek key (fast and cheap):
+
+```bash
+export DEEPSEEK_API_KEY=your-key-here
+```
+
+### Step 3: Run your first community report
+
+Let's look at the stocks community as an example. Pick any subreddit you like —
+just swap `stocks` for your community's name.
+
+```bash
+# 1. What's happening in r/stocks right now?
+python reddit-intel/scripts/pulse.py \
+  --subreddit stocks --limit 30 --top 5 \
+  --out pulse-stocks.html
+# → open pulse-stocks.html — a one-page "newspaper" of the community
+
+# 2. How many people should we study for trustworthy results?
+python reddit-intel/scripts/sample_size.py \
+  --subreddit stocks --confidence 95 --margin 5 \
+  --html-out sample-size-stocks.html
+# → open sample-size-stocks.html — it tells you exactly how many to use
+
+# 3. Build profiles of 20 of the most active members
+python reddit-intel/scripts/build_dataset.py \
+  --subreddit stocks --users 20 --comments-per-user 30 \
+  --out dataset-stocks --model deepseek-v4-flash --concurrency 2
+# → dataset-stocks/index.html — a gallery of who these people are
+
+# 4. Ask them about your product idea (a simulated survey)
+python reddit-intel/scripts/synthetic_survey.py \
+  --personas dataset-stocks/personas.jsonl \
+  --out survey-stocks --model deepseek-v4-flash --concurrency 2
+# → survey-stocks/report.html — how this community would react to your idea
+```
+
+That's the whole flow. Four commands, four reports, all openable in a browser.
+
+---
+
+## Asking your own questions (rounds of surveys)
+
+Once you've built a set of community profiles, you can ask them *anything* —
+and keep asking. Each new question set is a "round," and it reuses the same
+profiles, so it's fast and cheap.
+
+Here's how to test, say, three different ways of describing your product to see
+which one people like best:
+
+```bash
+# Step A: Write your questions in a simple JSON file (see examples/positioning-instrument.json)
+# Step B: Quick test on a small sample first (~2 minutes)
+python reddit-intel/scripts/ai_use_survey.py \
+  --personas dataset-stocks/personas-20-random.jsonl \
+  --instrument examples/positioning-instrument.json \
+  --out survey-test-20 --model deepseek-v4-flash --concurrency 3
+
+# Step C: If the small test looks sensible, run the full community (~30 minutes)
+python reddit-intel/scripts/ai_use_survey.py \
+  --personas dataset-stocks/personas-30.jsonl \
+  --instrument examples/positioning-instrument.json \
+  --out survey-test-full --model deepseek-v4-flash --concurrency 3
+```
+
+**The golden rule for reading the answers:** people's stated opinions are nice,
+but what they'd actually *buy* is the truth. Pay most attention to the question
+that asks which offer they'd take today, not the one that asks what sounds nice.
+
+---
+
+## Tips for good results
+
+- **Use at least 30 comments per person.** More writing = more accurate profiles.
+- **Skip the quiet people.** Community members who've only written a few comments
+  don't give reliable profiles — the tool filters these out by default.
+- **Test small before you go big.** Always run a 20-person sample before a
+  400-person run. It takes two minutes and catches mistakes early.
+- **Treat the results as rehearsal, not prophecy.** Simulated answers are a great
+  guide, but real customers are the final word.
+
+---
+
+## Under the hood (for the curious)
+
+- No installation needed beyond Python — the scripts use only standard tools.
+- Profiles are built from each person's real comments, stored locally on your
+  machine. Nothing is uploaded.
+- The AI model reads the comments and summarizes the person's style, values, and
+  likely reactions. Every claim is grounded in actual quotes.
+- Reports are styled like a quality newspaper or a clean magazine — designed to
+  be read by people, not parsed by machines.
+- The original SvelteKit web app (an archived-Reddit search tool) ships alongside
+  these scripts, unchanged. `npm install && npm run dev` launches it if you want
+  the visual explorer.
+
+---
+
+## Credits & notes
+
+- This is a fork of [ArthurHeitmann/arctic_shift_ui](https://github.com/ArthurHeitmann/arctic_shift_ui),
+  which searches an archived copy of Reddit. We use that archive as the raw
+  material for the profiles and reports.
+- Archived data; removal requests: https://github.com/ArthurHeitmann/arctic_shift#contact--removal-requests
+- Sample reports from real runs live in `examples/`.
