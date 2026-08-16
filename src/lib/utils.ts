@@ -56,7 +56,7 @@ export function formatDuration(duration: number, dense = false): string {
  *	1 - ..y
  * @param time in seconds
  */
- export function timePassedSince(time: number, includeAdverb = true, adverb = "ago", absAdverb = "at", nowMs = Date.now()): string {
+ export function timePassedSince(time: number, includeAdverb = true, adverb = "ago", _absAdverb = "at", nowMs = Date.now()): string {
 	const timeStr = formatDuration(nowMs / 1000 - time);
 	return includeAdverb ? `${timeStr} ${adverb}` : timeStr;
 }
@@ -132,12 +132,13 @@ export function throttle(func: any, wait: number, options: { leading?: boolean, 
 			context = args = null;
 		}
 	};
-	return function(this: any, ..._: any) {
+	return function(this: any, ...rest: any[]) {
 		const now = Date.now();
 		if (!previous && options.leading === false) previous = now;
 		const remaining = wait - (now - previous);
+		// eslint-disable-next-line @typescript-eslint/no-this-alias -- throttle must preserve caller `this` for the delayed invocation
 		context = this;
-		args = arguments;
+		args = rest;
 		if (remaining <= 0 || remaining > wait) {
 			if (timeout) {
 				clearTimeout(timeout);
@@ -163,9 +164,10 @@ export function throttle(func: any, wait: number, options: { leading?: boolean, 
  */
 export function debounce<T>(this: T, func: any, wait: number, immediate = false) {
 	let timeout: number|null;
-	return function(this: T) {
+	return function(this: T, ...rest: any[]) {
+		// eslint-disable-next-line @typescript-eslint/no-this-alias -- debounce must preserve caller `this` for the delayed invocation
 		const context = this;
-		const args = arguments;
+		const args = rest;
 		clearTimeout(timeout!);
 		timeout = setTimeout(function() {
 			timeout = null;
@@ -294,7 +296,7 @@ export function editableTimeStrToMs(editableStr: string): number | string {
 		}
 
 		return timeMs;
-	} catch (e) {
+	} catch (_e) {
 		return "Invalid time format (example: 1y 7 months 1day 30s";
 	}
 }

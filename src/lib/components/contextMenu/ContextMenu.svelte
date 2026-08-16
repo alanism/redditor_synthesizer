@@ -76,7 +76,7 @@
 		class="context-menu"
 		style="left: {adjustedX}px; top: {adjustedY}px;"
 	>
-		{#each items as item, index}
+		{#each items as item, i (i)}
 			{#if item.separator}
 				<div class="separator"></div>
 			{:else}

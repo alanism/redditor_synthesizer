@@ -1,6 +1,6 @@
 <script lang="ts">
 	import "$lib/default.scss";
-	import { numberToShort, formatDuration, formatBytes, randomInt } from "$lib/utils";
+	import { numberToShort, formatDuration } from "$lib/utils";
 	import homeSvg from "$lib/images/home.svg";
 	import "./style.scss";
 	import TimeSeriesChart from "./TimeSeriesChart.svelte";

@@ -6,7 +6,6 @@
 	import type { RedditCommentData, RedditPostData } from "$lib/redditTypes";
 	import RedditThread from "$lib/components/reddit/RedditThread.svelte";
 	import homeSvg from "$lib/images/home.svg";
-	import settingsSvg from "$lib/images/settings.svg";
 	import Preferences from "./Preferences.svelte"
     import IdInputField from "./IdInputField.svelte";
     import { IdCategory, IdInput } from "./IdInput";
@@ -115,7 +114,7 @@
 
 	function getSearchUrl(): string|null {
 		const params = new URLSearchParams();
-		let paramNames: [string, string][] = [];
+		let paramNames: [string, string][];
 		let endpoint: string;
 		if (fun == Function.PostsSearch) {
 			endpoint = "posts";
@@ -329,7 +328,7 @@
 	}
 
 	function searchPrevious() {
-		searchPagination((data) => {
+		searchPagination(() => {
 			const timestamp = previousHistory[previousHistory.length - 1];
 			if (!timestamp)
 				return;
@@ -389,14 +388,14 @@
 					bind:text={subreddit}
 					label="Subreddit"
 					transform={(text) => text.replace(/^\/?r\//g, "").trim()}
-					getError={(text) => text.length == 0 || text.length >= 2 && text.match(/^[a-zA-Z0-9_\-]+$/) ? null : "Invalid subreddit"}
+					getError={(text) => text.length == 0 || text.length >= 2 && text.match(/^[a-zA-Z0-9_-]+$/) ? null : "Invalid subreddit"}
 					onEnter={search}
 				/>
 				<TextField
 					bind:text={author}
 					label="Author"
 					transform={(text) => text.replace(/^\/?u(ser)?\//g, "").trim()}
-					getError={(text) => text.length == 0 || text.length >= 2 && text.match(/^[a-zA-Z0-9_\-\[\]]+$/) ? null : "Invalid author"}
+					getError={(text) => text.length == 0 || text.length >= 2 && text.match(/^[a-zA-Z0-9_\-[\]]+$/) ? null : "Invalid author"}
 					onEnter={search}
 				/>
 			</div>

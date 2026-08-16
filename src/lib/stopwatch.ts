@@ -1,5 +1,3 @@
-import { roundTo } from "./utils";
-
 export class Stopwatch {
 	private accumulatedTime: number = 0;
 	private runningSince: number|null = null;

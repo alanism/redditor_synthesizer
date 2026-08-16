@@ -53,8 +53,7 @@ export interface RedditWikiObj extends RedditApiObj {
 	data: RedditWikiData,
 }
 
-export interface RedditApiData {
-}
+export type RedditApiData = object;
 
 export interface RedditListing<T> extends RedditApiData {
 	dist: number,

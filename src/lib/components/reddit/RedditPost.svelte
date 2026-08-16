@@ -44,6 +44,7 @@
 	{/if}
 	{#if data.selftext}
 		<div class="selftext long-text">
+			<!-- eslint-disable-next-line svelte/no-at-html-tags -- Reddit API provides sanitized selftext_html (trusted server-rendered markdown) -->
 			{@html data.selftext_html}
 		</div>
 	{/if}

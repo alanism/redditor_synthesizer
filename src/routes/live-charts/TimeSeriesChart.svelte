@@ -3,7 +3,7 @@
 	import { onDestroy, onMount } from "svelte";
 	import "./style.scss";
 	import * as d3 from "d3";
-	import { deepCopy, editableTimeStrToMs, isJsonEqual, isOnScreen, lerp, numberToShort, throttle, timeMsToEditableTimeStr } from "$lib/utils";
+	import { deepCopy, editableTimeStrToMs, isJsonEqual, isOnScreen, lerp, throttle, timeMsToEditableTimeStr } from "$lib/utils";
 	import { type Precision, type TimeSeriesData, TimeSeriesDataFetcher } from "./TimeSeriesDataFetcher";
 	import TextField from "$lib/components/TextField.svelte";
     import type { Notifier } from "$lib/notifier";
@@ -46,7 +46,6 @@
 	let isDragging = false;
 	let lastClientX = 0;
 	let lastWidth = 0;
-	let hasPendingWidthUpdate = false;
 	
 	let chartContainer: SVGSVGElement|undefined = $state();
 	const height = 300;
@@ -84,7 +83,6 @@
 
 		// X axis
 		xAxisScale = d3.scaleTime()
-			// @ts-ignore
 			.domain([rangeStartTs, rangeEndTs])
 			.range([padding.left, width - padding.right]);
 		xAxis = d3.axisBottom(xAxisScale);
@@ -93,7 +91,7 @@
 		yAxisLeftScale = d3.scaleLinear()
 			.range([height - padding.bottom, padding.top]);
 		yAxisLeft = d3.axisLeft(yAxisLeftScale)
-			 // @ts-ignore
+			 // @ts-expect-error d3 axis tickFormat accepts custom formatter
 			.tickFormat(numberFormatter);
 
 		// Y axis right
@@ -103,7 +101,7 @@
 			: null;
 		yAxisRight = hasRightAxis ?
 			d3.axisRight(yAxisRightScale!)
-				 // @ts-ignore
+				 // @ts-expect-error d3 axis tickFormat accepts custom formatter
 				.tickFormat(numberFormatter)
 			: null;
 
@@ -124,7 +122,6 @@
 				.attr("fill", "currentColor")
 				.text((axisLabels[0] ?? "").replace("$$", data[0]?.precision ?? ""));
 		}
-		// @ts-ignore
 		leftAxisGroup.call(yAxisLeft);
 		if (hasRightAxis) {
 			axisRightGroup = svg.append("g")
@@ -140,7 +137,6 @@
 					.attr("fill", "currentColor")
 					.text((axisLabels[1] ?? "").replace("$$", data[1]?.precision ?? ""));
 			}
-			// @ts-ignore
 			axisRightGroup.call(yAxisRight!);
 		}
 
@@ -182,7 +178,6 @@
 		const width = chartContainer.parentElement.clientWidth;
 		if (width === 0)
 			return;
-		hasPendingWidthUpdate = false;
 		
 		d3.select(chartContainer)
 			.attr("width", width);
@@ -239,7 +234,6 @@
 
 		// X axis
 		xAxisScale
-			// @ts-ignore
 			.domain([rangeStartTs, rangeEndTs])
 			.range([padding.left, width - padding.right]);
 
@@ -249,7 +243,7 @@
 			.range([height - padding.bottom, padding.top]);
 		yAxisLeft
 			.ticks(6)
-			 // @ts-ignore
+			 // @ts-expect-error d3 axis tickFormat accepts custom formatter
 			.tickFormat(numberFormatter);
 
 		// Y axis right
@@ -259,7 +253,7 @@
 			;
 		yAxisRight
 			?.ticks(6)
-				// @ts-ignore
+				// @ts-expect-error d3 axis tickFormat accepts custom formatter
 			.tickFormat(numberFormatter);
 
 		xAxisGroup
@@ -273,7 +267,6 @@
 				.attr("x", -height / 2)
 				.text((axisLabels[0] ?? "").replace("$$", data[0]?.precision ?? ""));
 		}
-		// @ts-ignore
 		leftAxisGroup.call(yAxisLeft);
 		if (hasRightAxis) {
 			axisRightGroup
@@ -285,7 +278,7 @@
 					.attr("x", -height / 2)
 					.text((axisLabels[1] ?? "").replace("$$", data[1]?.precision ?? ""));
 			}
-			// @ts-ignore
+			// @ts-expect-error d3 selection call accepts axis generator
 			axisRightGroup.call(yAxisRight!);
 		}
 
@@ -296,12 +289,13 @@
 				axisScale: i % 2 === 0 ? yAxisLeftScale : yAxisRightScale!,
 				color: colors[i] ?? d3.schemeCategory10[i],
 			})))
-			.attr("d", line => d3.line()
-				.x((d) => xAxisScale(d[0]))
-				.y((d) => line.axisScale(Math.abs(d[1])))
-				// @ts-ignore
-				(line.points)
-			);
+			.attr("d", line => {
+				const lineGen = d3.line()
+					.x((d) => xAxisScale(d[0]))
+					.y((d) => line.axisScale(Math.abs(d[1])));
+				// @ts-expect-error d3 line generator accepts [Date, number][] points
+				return lineGen(line.points);
+			});
 	}
 
 	async function fetchData() {
@@ -396,10 +390,8 @@
 		const newWidth = chartContainer.parentElement.clientWidth;
 		if (newWidth === lastWidth)
 			return;
-		if (newWidth === 0) {
-			hasPendingWidthUpdate = true;
+		if (newWidth === 0)
 			return;
-		}
 		lastWidth = newWidth;
 		updateChart();
 	}
@@ -551,7 +543,7 @@
 			/>
 		</div>
 		<div class="legend">
-			{#each apiPathKeys as _, i}
+			{#each apiPathKeys as key, i (key[0])}
 				{#if i < seriesLabels.length}
 					<div class="legend-item">
 						<div class="legend-color" style="background-color: {colors[i]}"></div>

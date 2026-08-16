@@ -1,6 +1,5 @@
 <script lang="ts">
 	import "$lib/default.scss";
-	import type { DateState } from "$lib/components/datePickerTypes";
 	import TextField from "./TextField.svelte";
 
 	interface Props {

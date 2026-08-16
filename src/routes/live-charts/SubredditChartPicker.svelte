@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { numberToShort, formatDuration, formatBytes } from "$lib/utils";
+	import { numberToShort } from "$lib/utils";
 	import OptionSelector from "$lib/components/OptionSelector.svelte";
 	import TextField from "$lib/components/TextField.svelte";
 	import "$lib/default.scss";

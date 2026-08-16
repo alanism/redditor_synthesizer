@@ -51,6 +51,7 @@
 			<span class="score">{data.score} </span><PresetSvg name="upvote" size={14} />
 		</div>
 		<div class="body">
+			<!-- eslint-disable-next-line svelte/no-at-html-tags -- Reddit API provides sanitized body_html (trusted server-rendered markdown) -->
 			{@html data.body_html}
 		</div>
 			<ContentLinkButtons redditPermalink={data.permalink} archiveId={`t1_${data.id}`} />

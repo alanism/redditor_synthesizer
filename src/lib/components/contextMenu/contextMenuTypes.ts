@@ -11,4 +11,4 @@ export interface ContextMenuEvent {
 	y: number;
 }
 
-export interface ContextMenuEventDetail extends ContextMenuEvent {}
+export type ContextMenuEventDetail = ContextMenuEvent;

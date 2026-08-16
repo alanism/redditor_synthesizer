@@ -88,6 +88,58 @@ python reddit-intel/scripts/build_dataset.py --subreddit stocks --users 20 --out
 python reddit-intel/scripts/synthetic_survey.py --personas /tmp/demo/personas.jsonl --out /tmp/demo/survey --no-llm
 ```
 
+## Rounds of surveys — iterate positioning/pricing on the same personas
+
+Once you have a dataset (`dataset-*/personas-30.jsonl`), you can run any number
+of survey **rounds** against the same personas — no new fetching. Each round is
+a new instrument + output dir, checkpointed via `responses.jsonl` (re-running
+resumes, skipping completed authors).
+
+```bash
+# 1. Short custom instruments (2+ single_choice questions, % per option):
+#    use ai_use_survey.py — it accepts ANY N questions via --instrument.
+#    (synthetic_survey.py is hardcoded to the 12-Q shape; ai_use_survey is the generic one.)
+
+# Pilot FIRST on a random 20 rich personas (~2 min at c3) — direction gate, not share:
+python3 - <<'EOF'
+import json, random
+rows=[json.loads(l) for l in open("$OUT/dataset-385/personas-30.jsonl")]
+rich=[r for r in rows if r.get("big_five") and r.get("engine") and r.get("quotes") and r.get("one_line")]
+random.seed(20260816)  # fixed seed = reproducible sample
+open("$OUT/dataset-385/personas-20-random.jsonl","w").write(
+  "\n".join(json.dumps(r,ensure_ascii=False) for r in random.sample(rich,20)))
+EOF
+
+# 2. Run the instrument on the pilot (read DIRECTION; 100% columns are instrument artifacts)
+python reddit-intel/scripts/ai_use_survey.py \
+  --personas "$OUT/dataset-385/personas-20-random.jsonl" \
+  --instrument examples/positioning-instrument.json \
+  --out "$OUT/survey-positioning-20" --model deepseek-v4-flash --concurrency 3
+
+# 3. If direction is good, run the full population (~25-35 min for 7-Q at c3):
+python reddit-intel/scripts/ai_use_survey.py \
+  --personas "$OUT/dataset-385/personas-30.jsonl" \
+  --instrument examples/positioning-instrument.json \
+  --out "$OUT/survey-positioning-385" --model deepseek-v4-flash --concurrency 3
+# → report.html (mono design), aggregates.json (share % per option per Q), responses.jsonl/csv
+```
+
+**Reading rule (Hormozi):** don't trust what respondents say they like — watch
+which offer they'd buy today (Q6) and which line wins head-to-head (Q1). Q2
+reveals the wedge; Q3 tests whether "we handle everything" converts the
+undecided block; Q7 identifies the conversion trigger for a fielded pilot.
+
+**Narrative report (optional, per round):** the mono grid is data; for a
+stakeholder deliverable, wrap it in a Thompson-style editorial × Monocle-design
+single-file HTML with a pilot postscript + Hormozi operator note (see the
+reddit-dataset-ops skill reference for the exact recipe). Every number must be
+pulled live from `aggregates.json`/`responses.jsonl` — never hardcoded.
+
+**Filter before surveying (Alan's standing preference):** build
+`personas-30.jsonl` (`comments >= 30`) and point instruments at it, not the
+full `personas.jsonl`. Pilot rows may carry `comments: null` — backfill the
+count from the seed pilot jsonl first.
+
 ### Open the results (offline, single-file)
 
 - `pulse-*.html` — Monocle newspaper on `#fdfcf3` (Plantin), yellow `#ffc500` ≤1 accent, `1px #d9d9d9` hairlines, `0px` card radius.

@@ -192,10 +192,10 @@ class RequestCache {
 		}
 		this.setParams(params, true);
 		this.isFetching = true;
-		this.pendingRequest = new Promise(async (resolve) => {
-			let [start, end] = makeRange(this.before, this.duration, 0);
-			start = Math.max(start, new Date(2000, 0, 1).getTime());
-			let url = `${apiUrl}/api/time_series?key=${this.key}&precision=${this.precision}&after=${start}&before=${end}`;
+		this.pendingRequest = (async () => {
+			const [start0, end] = makeRange(this.before, this.duration, 0);
+			const start = Math.max(start0, new Date(2000, 0, 1).getTime());
+			const url = `${apiUrl}/api/time_series?key=${this.key}&precision=${this.precision}&after=${start}&before=${end}`;
 			const response = await fetch(url);
 			const data = await response.json() as ApiResponseData;
 			const points = data.data!.map(p => <[Date, number]>[
@@ -203,12 +203,12 @@ class RequestCache {
 				p.value,
 			]);
 			this.fetchedAt = new Date();
-			resolve({
+			return {
 				key: [this.key],
 				precision: this.precision,
 				points,
-			});
-		});
+			};
+		})();
 		this.pendingRequest.then(this.onRequestCompleted.bind(this));
 		this.pendingRequest.catch(this.onRequestFailed.bind(this));
 		this.pendingRequest.finally(this.onRequestDone.bind(this));
@@ -299,9 +299,9 @@ const precisionDurations: {[precision in Precision]: number} = {
 function getPrecisionFor(duration: number, minPrecision: Precision): Precision {
 	const targetPoints = duration < (2 * 24 * 60 * 60 * 1000) ? 2200 : 1800;
 	const startIndex = Object.keys(precisionDurations).indexOf(minPrecision);
-	let precisionObj = Object.entries(precisionDurations).find(([precision, precisionDuration], i) => i >= startIndex && duration / precisionDuration < targetPoints);
+	let precisionObj = Object.entries(precisionDurations).find(([, precisionDuration], i) => i >= startIndex && duration / precisionDuration < targetPoints);
 	if (precisionObj === undefined)
-		precisionObj = Object.entries(precisionDurations).find(([precision, precisionDuration]) => precision === "year")!;
+		precisionObj = Object.entries(precisionDurations).find(([precision]) => precision === "year")!;
 	let precision = precisionObj[0] as Precision;
 	if (precision === "hour" && duration / precisionObj[1] > 500)
 		precision = "day";

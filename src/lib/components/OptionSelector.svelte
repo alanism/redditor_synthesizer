@@ -52,7 +52,7 @@
 		class="option-selector"
 		class:expanded={expand}
 	>
-		{#each options as option}
+		{#each options as option (option.value)}
 			<button
 				class="option"
 				class:selected={selected === option.value}

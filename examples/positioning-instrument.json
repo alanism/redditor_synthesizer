@@ -1,0 +1,89 @@
+{
+  "title": "Positioning survey — test explainer lines on your personas",
+  "intro": "Rounds-of-survey pattern: after a usefulness survey (e.g. the SOP-v6 12-Q), run this positioning instrument on the SAME personas to test 3 candidate explainer lines + offer/pricing head-to-head. Each question has verbatim response options; results are % share of simulated respondents. Edit the 3 lines in Q1 to match YOUR product's actual candidate pitches — keep them identical to what you'd ship (A/B/C tag prefix only).",
+  "questions": [
+    {
+      "id": "Q1",
+      "type": "single_choice",
+      "prompt": "Which of these three descriptions makes you most likely to try the product? (A) LINE A: 'REPLACE — your speed/outcome pitch, one clear promise.' (B) LINE B: 'REPLACE — your trust/ownership pitch, one clear promise.' (C) LINE C: 'REPLACE — your effort-removal pitch, one clear promise.'",
+      "options": [
+        "A — (REPLACE with your line A short label)",
+        "B — (REPLACE with your line B short label)",
+        "C — (REPLACE with your line C short label)",
+        "None of these describe what I need"
+      ]
+    },
+    {
+      "id": "Q2",
+      "type": "single_choice",
+      "prompt": "Which benefit matters most to you when choosing this kind of product?",
+      "options": [
+        "Speed — I see exactly what to do next, fast",
+        "Ownership — my data stays private and mine",
+        "Effortless — it just works, no setup or maintenance from me",
+        "Price — it has to be affordable",
+        "Proof — I need evidence it actually works before I believe it"
+      ]
+    },
+    {
+      "id": "Q3",
+      "type": "single_choice",
+      "prompt": "If we handled ALL setup and maintenance for you — the infrastructure, the integrations, all of it — and you only consumed the weekly output, which path would you choose?",
+      "options": [
+        "Managed — that removes my biggest blocker, I'd use it",
+        "Managed — but I still need to see it work before committing",
+        "DIY — I actually want to run it myself",
+        "Still undecided — I need a free trial or real result first",
+        "Neither — this category just isn't for me"
+      ]
+    },
+    {
+      "id": "Q4",
+      "type": "single_choice",
+      "prompt": "What is your biggest fear or worry about this kind of system?",
+      "options": [
+        "Setup and upkeep — I don't want to be a sysadmin",
+        "Trust — I don't want my data on someone else's platform",
+        "It won't get used — a tool I ignore is dead weight",
+        "Cost — it sounds expensive for what it is",
+        "It's fake — AI promises too much and delivers too little"
+      ]
+    },
+    {
+      "id": "Q5",
+      "type": "single_choice",
+      "prompt": "What would you be willing to pay per month for a system that shows you exactly what to do next, every week, based on real evidence?",
+      "options": [
+        "$0 — it should be free/open-source",
+        "$9/mo — a practical subscription",
+        "$25/mo — a real tool worth investing in",
+        "$47/mo — if it truly removes all setup and maintenance",
+        "$99+/mo — if it genuinely improves outcomes"
+      ]
+    },
+    {
+      "id": "Q6",
+      "type": "single_choice",
+      "prompt": "Which offer would you actually buy today?",
+      "options": [
+        "Free 20-minute assessment — see my gaps, no commitment",
+        "$9/mo weekly plan — input in, plan out, I do the setup",
+        "$47/mo full concierge — you set up, maintain, and report weekly",
+        "$99/mo family plan — multiple people, priority support",
+        "None — I'm not buying until I see it work on a real case"
+      ]
+    },
+    {
+      "id": "Q7",
+      "type": "single_choice",
+      "prompt": "What would make you say YES in the next 30 days?",
+      "options": [
+        "See a real result — a demo with a real person's progress",
+        "Money-back guarantee — zero risk if it doesn't deliver",
+        "Zero setup — everything handled before I touch it",
+        "A trusted person recommends it to me",
+        "A price I can't refuse — free or heavily discounted trial"
+      ]
+    }
+  ]
+}

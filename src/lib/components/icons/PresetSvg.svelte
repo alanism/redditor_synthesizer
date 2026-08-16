@@ -29,7 +29,8 @@
 		xmlns="http://www.w3.org/2000/svg"
 		style="color: {color};"
 	>
-		{@html preset.innerHtml}
+		<!-- eslint-disable-next-line svelte/no-at-html-tags -- preset.innerHtml comes from the hardcoded local preset map, not user input -->
+	{@html preset.innerHtml}
 	</svg>
 {:else}
 	?

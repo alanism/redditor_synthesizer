@@ -51,16 +51,20 @@ export class ArchiveStream<T> {
 	}
 
 	pause(): Promise<void> {
-		return new Promise(async (resolve, reject) => {
+		return new Promise((resolve, reject) => {
 			const isRunning = this.isRunning;
 			if (isRunning)	
 				this.onStopped = resolve;
 			this.isRunning = false;
 			this.onStateChange.notify();
 			this.abortController?.abort();
-			await this.flush();
-			if (!isRunning)
-				resolve();
+			this.flush().then(
+				() => {
+					if (!isRunning)
+						resolve();
+				},
+				reject
+			);
 		});
 	}
 
