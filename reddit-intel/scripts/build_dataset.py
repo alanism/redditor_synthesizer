@@ -663,6 +663,7 @@ def main():
     ap.add_argument("--no-llm", action="store_true", help="heuristic dossiers only (no LLM)")
     ap.add_argument("--no-archetype-llm", action="store_true", help="skip LLM polish of archetype summaries (deterministic tactics only)")
     ap.add_argument("--reindex-only", action="store_true", help="only regenerate index.html from existing dossiers/personas.jsonl (no fetching)")
+    ap.add_argument("--template", default="v33", choices=["v33","v4-thinking","v4-flash"], help="persona synthesis template passed to persona.py (v4-flash = batch microcard lane)")
     args=ap.parse_args()
 
     _load_env_file()
@@ -761,6 +762,8 @@ def main():
                 except: pass
 
     def build_one(author: str):
+        if author.startswith("-"):
+            return {"author":author,"skipped":True,"reason":"dash-prefixed username — skipped (argparse)"}
         out_html=dossiers_dir/f"u_{author}.html"
         out_json=dossiers_dir/f"u_{author}.json"
         try:
@@ -770,9 +773,10 @@ def main():
             if args.keep_raw:
                 (raw_dir/f"u_{author}.json").write_text(json.dumps(comments, ensure_ascii=False, indent=2))
             import subprocess, sys as _sys
-            cmd=[_sys.executable, str(SCRIPT_DIR/"persona.py"), "--author", author, "--limit", str(args.comments_per_user), "--out", str(out_html)]
+            cmd=[_sys.executable, str(SCRIPT_DIR/"persona.py"), f"--author={author}", "--limit", str(args.comments_per_user), "--out", str(out_html)]
             if args.no_llm: cmd.append("--no-llm")
             else: cmd.extend(["--model", args.model])
+            cmd.extend(["--template", args.template])
             _env=dict(os.environ)
             env_path=Path.home() / ".hermes/profiles/hermozi/.env"
             if env_path.exists():

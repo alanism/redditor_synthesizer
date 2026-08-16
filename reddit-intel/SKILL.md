@@ -1,7 +1,7 @@
 ---
 name: reddit-intel
 description: "Use when analyzing Reddit subreddits or redditors: pulse reports, persona synthesis, or synthetic datasets."
-version: 1.4.0
+version: 1.5.0
 author: Hermes Agent
 license: MIT
 metadata:
@@ -20,6 +20,7 @@ Three intelligence products on one data backbone (Arctic Shift API). Strictly to
 |---------|--------------|-------|--------|-----|
 | **Pulse** | `DESIGN-Monocle.md` (tokens only; report never says Monocle) | `r/<subreddit>` + window | Single-file Intelligence Brief HTML: generated title, executive briefing, activity timeline, what changed, theme landscape (volume vs engagement + heatmap), representative posts, sentiment + intent, keywords + methodology | What is happening, what is changing, and what evidence supports it (30-sec brief) |
 | **Persona** | `DESIGN-Notion.md` | `u/<author>` or `r/<sub>` sample | Single-file dossier HTML populated from V3.3 Engine Template | Debate prep or high-fidelity digital twin |
+| **Collective Profile** | `DESIGN-Notion.md` | Multi-year raw comments + annual dossiers | Complete HTML + Markdown + JSON + exact-evidence audit | Stable traits, longitudinal shifts, and complete V3.3 population |
 | **Dataset** | Control Panel (HERMES tokens; Vega-Lite JSON) | `r/<sub>` + N users | Folder with N dossiers + `index.html` (archetypes + Vega-Lite + expandable previews + Copy JSON, local-first) + `personas.jsonl` (enriched: Big Five/quotes/arguments) | Cohort-level simulation control panel |
 | **Sample Size** | `DESIGN-Cosmos.md` | `N` + confidence + margin (+ optional `r/<sub>` + topic) | Deterministic `n` + Cosmos intelligence brief HTML | Decide how many redditors to pull — with x at y confidence and z margin, we think ... and we recommend abc. |
 | **Synthetic Survey** | `DESIGN-Cosmos.md` (report) | `personas.jsonl` + 12-Q instrument (SOP v6 grounded) | Simulated responses: `responses.jsonl/csv`, `report.html` with aggregates + Cosmos methodology box | Test positioning/messaging on a synthetic population before fielding |
@@ -30,12 +31,31 @@ All four share the same fetch layer (`arctic-shift` API at `https://arctic-shift
 
 - User says "pulse on r/X" / "what's happening in r/X" / "subreddit report" -> **Pulse**
 - User says "analyze u/X" / "who is this redditor" / "debate prep for u/X" / "synthesize this user" -> **Persona** (single)
+- User says "use all comments" / "complete profile" / "populate the full V3.3 template" / asks how one user changed over years -> **Collective Profile**: hierarchical annual synthesis + balanced raw excerpts + exact evidence audit; follow `references/collective-profile.md`
 - User says "build a dataset for r/X" / "sample of r/parenting" / "simulate reactions from r/vietnam" -> **Dataset** (bulk persona)
 - User says "trends in r/X" / "sentiment of r/X" -> **Pulse** with trend block
 
 Don't use for:
 - Live Reddit API actions (posting, voting, moderating) — this is archive intelligence only
-- Non-Reddit persona synthesis (use the V3.3 template directly)
+- Non-Reddit persona synthesis (use the V4 template directly)
+
+## Template Selection — V4 Thinking vs V4 Flash
+
+One Seven-Signal system, two templates. Pick by target, not by preference.
+
+| Dimension | **V4 Thinking** | **V4 Flash** |
+|---|---|---|
+| Target | Single redditor (`u/X`) | Cohort / segment (`r/X` sample, 20–100 profiles) |
+| Goal | Deep dossier, digital twin, debate prep, longitudinal arc | Synthetic data, simulated survey/review, group + segment prediction |
+| Corpus | Full multi-year, 100+ comments | 15–30+ comments/profile (30 preferred, 15–20 thin-flag, <15 drop) |
+| Output | Full essay dossier + 18-section JSON | One compact JSON microcard + one segment rollup |
+| Tokens/profile | ~10–15k in, ~4–8k out | ~3–6k in, ~350–550 out (card) + ~80–200 (answer) |
+| Speed | Slow, one at a time | High-throughput batch |
+| Prompt cache | System = full template (stable) | Pass 1: system = codebook+schema; Pass 2: system = codebook+instrument |
+| IQ-LP | Optional, quarantined band | OFF by default, never aggregated |
+| Escalation | — | Single decision-critical profiles escalate to Thinking |
+
+Routing: `persona.py --author X` (single) → **V4 Thinking**. `build_dataset.py` + `synthetic_survey.py` (bulk) → **V4 Flash**. `--template v33` retains the legacy V3.3 prompt. Templates: `templates/AlanDarkArts-v4-thinking.md`, `templates/AlanDarkArts-v4-flash.md`; adversarial review: `references/adversarial-review-v4-flash.md`.
 
 ## Quick Reference
 
@@ -103,12 +123,12 @@ python ~/.hermes/skills/research/reddit-intel/scripts/synthetic_survey.py --pers
 
 ### Data Flow per Product
 
-**Pulse (5 steps):**
-1. Fetch posts `GET /api/posts/search?subreddit=X&limit=25&sort=desc` (+ optional `after` window).
-2. Fetch comment volume `GET /api/comments/search?subreddit=X&limit=100` for velocity.
-3. Rank top 3-5 by `score + num_comments` composite, extract title/selftext/permalink.
-4. Synthesize themes (cluster titles), sentiment per theme, and trend signals (compare current vs prior window keyword frequency + score velocity).
-5. Render single-file HTML with Monocle tokens. Done when: HTML opens offline, shows masthead + 3-5 ranked posts + theme cards + sentiment strip + trend callout.
+**Pulse (7 sections — Intelligence Brief, never says Monocle):**
+1. Fetch posts `GET /api/posts/search?subreddit=X&limit=25-30&sort=desc` (+ `after` window; if limit>=40 fetch 60 for baseline split).
+2. Rank top 3-5 by `score*0.6 + num_comments*0.9 + (score+comments)*0.1` composite, extract title/selftext/permalink, tag intent via `classify_intent`.
+3. Synthesize themes (phrase-aware cluster: `extract_phrases` bigrams + `ARTIFACT_TOKENS` filtered), sentiment per theme, intent breakdown, timeline/heatmap/quadrant, collection_meta + confidence_assessment.
+4. LLM enrichment (if key): generate human title (`_is_weak_label` + mega-cluster guard; neutral fallback `A Quiet Week in r/X` if sparse), polish theme labels, produce 3-sentence briefing, refine sentiment. Never use the word Monocle.
+5. Render single-file HTML with Monocle tokens (sections: Briefing → Activity → What changed → Themes → Posts → Sentiment+Intent → Keywords+Method). Done when: HTML opens offline, branded `HERMES INTELLIGENCE`, title human and evidence-grounded, confidence limitation visible.
 
 **Persona (4 steps):**
 1. Fetch comments `GET /api/comments/search?author=X&limit=N` (paginate if N>100, cap at 100 per call).
@@ -121,6 +141,8 @@ python ~/.hermes/skills/research/reddit-intel/scripts/synthetic_survey.py --pers
 2. For each author: fetch up to `--comments-per-user` comments (skip authors with <20 comments).
 3. Queue LLM synthesis (concurrency capped, rate-limited, checkpointed to `manifest.json`).
 4. Write `dossiers/u_<author>.html` (Notion) + `personas.jsonl` (one JSON rubric per line) + `index.html` (Monocle directory) + `manifest.json` (progress).
+
+> **V4 Flash batch note.** Dataset + survey are the V4 Flash lane. Microcards carry a `segment` label (dominant PRISM × Proof pole) so the rollup can report per-segment. IQ-LP is OFF at batch scale (never aggregated). Thin authors (15–20 comments) get a `thin` flag + downgraded confidence — they are **not** auto-escalated to Thinking; only decision-critical profiles escalate. See `references/adversarial-review-v4-flash.md`.
 
 ## Fetch Layer — Arctic Shift Details
 
@@ -142,16 +164,17 @@ Common gotchas (from `arctic-shift` skill):
 
 ## Intelligence Layer — What Gets Synthesized
 
-### Pulse: Subreddit Themes / Sentiment / Trends
+### Pulse: Subreddit Themes / Sentiment / Intent / Trends
 
-| Signal | How | Output in Monocle |
-|--------|-----|-------------------|
-| **Themes** | Cluster top 25 post titles + selftexts by keyword overlap or LLM topic extraction -> 3-5 labeled themes with representative post counts | Theme cards in 3-column grid, eyebrow = theme label |
-| **Sentiment** | Per-theme sentiment: LLM rates posts as positive/neutral/negative + aggregate bar; overall subreddit mood badge | Sentiment strip (yellow/black/gray bar) + per-theme pill |
-| **Trends** | Compare keyword frequency + median score in current window vs prior window (same length) -> rising/falling/stable tags; velocity line for comment volume | Trend callout card (warm surface) + mini sparkline |
-| **Top posts** | Rank by `score * 0.6 + num_comments * 0.4` composite (tunable) -> top 3-5 with title, author, score, comments, permalink, excerpt | Lead card + secondary stack (Monocle grid) |
+| Signal | How | Output in Brief |
+|--------|-----|-----------------|
+| **Themes** | Phrase-aware bigram extraction + contraction-aware tokenize (ARTIFACT_TOKENS: don/him/like/old removed) -> seed clusters by distinct keywords interleaved with phrase unigrams. Weak labels filtered via `_is_weak_label` + mega-cluster guard (>60% of sample treated as corpus, not theme). LLM refines labels when key present. | Theme cards: eyebrow = label, pills = freq + median engagement + sentiment, separate frequency vs engagement |
+| **Sentiment** | Per-theme lexicon (SENT_POS/NEG) + aggregate bar; overall mood badge. LLM sentiment replaces when key present. Kept separate from engagement. | Sentiment strip (yellow/black/gray bar) + per-theme pill |
+| **Intent** | Rule-based `classify_intent` (6 buckets: advice-seeking, reassurance, venting, personal story, product recommendation, safety concern) + neutral fallback. | Intent bar (stacked colors) + pill legend + per-post pill |
+| **Trends / What changed** | Prior 7d vs current 7d split (fetch 60 when limit>=40). Also timeline (posts/day), theme×day heatmap, volume vs engagement quadrant, engagement histogram. | Timeline bars + heatmap table + quadrant plot + "What changed" card (new/faded themes) |
+| **Top posts** | Rank by `score*0.6 + num_comments*0.9 + (score+comments)*0.1` composite -> top 3-5 with excerpt, permalink, intent tag | Lead card (warm left border) + secondary stack |
 
-No LLM required for ranking; LLM required for theme labels + sentiment. Falls back to keyword-frequency themes if no LLM key.
+No LLM required for ranking/themes/intent/timeline; LLM required for human title + briefing + polished theme labels. Falls back to neutral title (`A Quiet Week in r/X` / `What r/X Is Asking This Week`) and heuristic labels with weak-label guard if no key.
 
 ### Persona: V3.3 Engine Template (all 8 sections)
 
@@ -172,19 +195,11 @@ Each score must have an **evidence anchor** — a short real phrase from the cor
 
 ## Rendering — Strict DESIGN.md Compliance
 
-### Monocle Pulse (`pulse.py` -> `DESIGN-Monocle.md`)
+### Monocle Pulse (`pulse.py` -> `DESIGN-Monocle.md`) — Tokens only, report says `HERMES INTELLIGENCE`
 
-Must match the Cost Forecast Monocle example (`example html/hermes-cost-forecast-monocle.html`):
-
-- **Canvas:** `#fdfcf3` newsprint cream, not white. `--color-newsprint-cream`.
-- **Accent:** single yellow `#ffc500` (`--color-signal-yellow`) — only for subscribe-equivalent CTA, trend callout, and sentiment bar. Everything else monochrome.
-- **Type:** Plantin (serif) for all editorial (masthead, headlines, eyebrows, body); Helvetica Neue (sans) only for utility bar. Substitutes: Source Serif Pro / Inter.
-- **Eyebrows:** `Plantin 13px uppercase 0.075em tracking` (e.g. `THEME · PARENTING`, `SENTIMENT`, `TREND`).
-- **Rules:** `1px solid #d9d9d9` hairlines between sections/cards, never shadows. Cards: `0px` radius (buttons), `8px` only on photo containers.
-- **Grid:** 3-column editorial (lead post | secondary stack | sentiment/trend sidebar) collapsing to single column <900px.
-- **Single-file:** inline CSS + inline SVG, no external deps except optional `mermaid@10` for trend flowchart.
-
-Verify: open HTML offline -> masthead reads `HERMES · r/<sub> INTELLIGENCE` -> yellow appears <=3 places -> no shadows -> hairlines visible at 1px.
+- **Naming:** report title + masthead + footer never say HERMES; internal design name stays in `DESIGN-Monocle.md` / code / docs only. Generated title is human, grounded in themes (e.g. `Parenting Pulse: Sleep, Potty Woes, Childcare & Hard Questions`), with neutral fallbacks (`A Quiet Week in r/X` / `What r/X Is Asking This Week`) when sparse/inconclusive and a `_is_weak_label` + mega-cluster (>60% of sample) guard so heuristic titles like `Kids, Anyone & Est` never render. Weak evidence must not be overstated.
+- **Structure (7 sections):** Briefing (30-sec bullets + confidence dot) → Activity (timeline + engagement histogram) → What changed (7d vs prior 7d baseline) → Themes (freq vs engagement separated + quadrant + heatmap) → Posts (lead + stack, intent-tagged) → Sentiment+Intent → Keywords+Methodology. Covers: what's discussed, what changed, which themes matter, what evidence supports it, how confident.
+- **Canvas / Type / Rules / Grid / Single-file:** as before. **Verify:** open HTML offline -> masthead `HERMES INTELLIGENCE · r/<sub>` (no HERMES) -> title human/specific, not generic -> yellow <=3 places, 1px hairlines, timeline + heatmap + quadrant render, confidence + methodology visible, no `don`/`him`/`like` in themes/keywords.
 
 ### Notion Dossier (`persona.py` -> `DESIGN-Notion.md`)
 
@@ -246,7 +261,7 @@ For user-requested dataset folders (e.g. `./data/parenting/`):
 Sample-size itself is deterministic (no LLM). Persona/dataset/survey synthesis is where caching wins:
 
 - Recommended provider: `deepseek-v4-flash` via `DEEPSEEK_API_KEY` (direct api.deepseek.com) -- prompt-cache price advantage (approx 0.1x on cached tokens) + quality. Falls back to OPENROUTER then OPENAI.
-- V3.3 template as stable prefix: put full V3.3 prompt (approx 2484 chars) in system (cached), corpus in user (variable). Same for survey: instrument (approx 2048 tokens) in system, persona summary (approx 1k variable) in user. First call misses, rest hit.
+- Stable template as cached prefix: put the **full template** in system (cached), corpus in user (variable). V3.3 prompt ≈ 2484 chars. V4 templates are larger (Flash ≈ 5k tokens, Thinking ≈ 13k tokens) so the split matters more. V4 Flash uses a **two-pass** structure — Pass 1 (microcard): system = codebook + card schema, user = corpus; Pass 2 (stimulus): system = codebook + instrument, user = the already-built microcard. Microcards are built once and reused across instruments. Survey: instrument (≈ 2048 tokens) in system, persona summary (≈ 1k variable) in user. First call misses, rest hit.
 - Observed: r/homeschool 20 dossiers via deepseek-v4-flash -- 2nd call cache hit 2432/2433, subsequent miss 9 hit 2432 (99.6% on prefix). Survey: cache hit 1920/2033 then 1664/2054 (approx 85-94% on prefix).
 - Reasoning budget: deepseek reasoning models burn approx 2000-3000 reasoning tokens before JSON. analyze.py try_llm auto-sets max_tokens=12000 for deepseek models (vs 3000 for others) and falls back to reasoning_content if content empty. Callers should NOT set max_tokens manually.
 - Env: _load_env_file reads both profiles/hermozi/.env and .hermes/.env so terminal subshells see keys without export.
@@ -279,12 +294,10 @@ All scripts:
 ## Verification Checklist
 
 Pulse:
-- [ ] HTML opens offline (no external CSS/JS required except optional mermaid CDN with fallback)
-- [ ] Masthead + utility bar + section nav render on `#fdfcf3`
-- [ ] Top 3-5 posts show title, author, score, comments, permalink, excerpt
-- [ ] 3-5 theme cards with labels + sentiment pills
-- [ ] Trend callout with rising/falling tags + velocity note
-- [ ] Yellow appears only on CTA/trend/sentiment bar; no shadows; 1px hairlines visible
+- [ ] HTML opens offline, `HERMES INTELLIGENCE · r/<sub>` (never HERMES), human title (not `Kids, Anyone & Est`), `INTELLIGENCE BRIEF` badge on `#fdfcf3`
+- [ ] 7 sections: Briefing (30-sec bullets) → Activity (timeline + histogram) → What changed (7d baseline) → Themes (freq vs engagement) → Posts (intent-tagged) → Sentiment+Intent → Keywords+Method
+- [ ] No `don`/`him`/`like`/`old` in themes/keywords (contraction + ARTIFACT_TOKENS filtered); bigrams like `potty training` appear as phrases
+- [ ] Timeline + heatmap + quadrant render; collection window, sample size, removed count, methodology + confidence limitations visible; confidence dot matches `confidence_assessment`
 
 Persona:
 - [ ] HTML opens offline on `#f6f5f4` with white `12px` cards
@@ -300,11 +313,7 @@ Dataset:
 - [ ] `index.html` (Monocle) lists all users with aggregate Engine distribution
 - [ ] No author with <20 comments included without explicit `--include-thin`
 
-Synthetic Survey (Pipeline 3):
-- [ ] `survey-instrument.json` lists all 12 Qs (Q1-Q6 usefulness, Q7 intent, Q8 NPS, Q9 journey A/B/Neither, Q10 top-3 max-3, Q11/Q12 open text ≤280)
-- [ ] `responses.jsonl` has one JSON per author with Q1..Q12 + why + _author linkage; `responses.csv` is pivot-ready
-- [ ] `report.html` (Cosmos) shows aggregates (likerts, NPS, journeys, top3), methodology box (with N at confidence/margin), and individual cards linked to dossiers
-- [ ] Report shows HEURISTIC banner if any response is heuristic fallback; aggregates include `heuristic_count` + `n`
+Synthetic Survey (Pipeline 3):\n- [ ] `survey-instrument.json` defines all Qs instrument-driven (no hard-coded Journey B); `responses.jsonl` has Q1..Q12 + why; `responses.csv` pivot-ready\n- [ ] `report.html` (HERMES, not MONOCLE) shows 8 sections: 01 Executive summary → 02 Methodology + warning → 03 Audience composition → 04 Concept evaluation → 05 Segment comparison (+ value ranking/funnel/barrier) → 06 Individual cards → 07 Calibration (4 prediction types + scorecard) → 08 Final 8 + Appendix; synthetic warning banner present\n- [ ] Instrument-agnostic: same template renders `r/stocks` Decision>Prediction and `r/parenting` UCC correctly; heuristic fallback shows HERMES banner, heuristic_count, and instrument-aware choices
 - [ ] Checkpoint: re-running same `synthetic_survey.py` command skips completed authors via existing `responses.jsonl` (idempotent 6→13→19→20)
 
 ## Common Pitfalls
@@ -320,11 +329,25 @@ Synthetic Survey (Pipeline 3):
 9. **Heuristic pollution** — `survey-simulation-heuristic/` aggregates look plausible but are not LLM signal. Reports now show HEURISTIC banner when `heuristic_count>0`; don't quote heuristic numbers.
 10. **180s shell timeout** — 20 deepseek dossiers take ~300s at concurrency 2. Re-run same command to resume (idempotent), or use concurrency 4 / timeout 600.
 11. **Timestamp confusion** — `created_utc` is seconds; `after`/`before` params accept ms or ISO. Convert with `*1000` when paginating via `after`.
+12. **`source ~/.hermes/.env` breaks on macOS** — `AGENT_BROWSER_EXECUTABLE_PATH` contains an unquoted path with spaces (`/Applications/Google Chrome.app/...`). Shell `source` fails with `Chrome.app/...: No such file`. Always use `analyze.py:_load_env_file()` (line-by-line, no word-splitting) — same fix handles split-root imports (`~/.hermes/skills/` vs `~/.hermes/profiles/hermozi/skills/`).
+13. **`timeout` missing on stock macOS** — `timeout 2400 python …` → `timeout: command not found` (needs `coreutils`/`gtimeout`). Drop `timeout` from wrappers; `build_dataset.py` + `synthetic_survey.py` are checkpoint-resume (`manifest.json` / `responses.jsonl` skip-on-resume) so re-running is idempotent. Also never use shell `nohup`/`&` inside `terminal(background=true)`.
+14. **Which pilot to expand** — `dataset-pilot-20/` is enriched (`big_five`+`quotes`+`arguments` present) and is the correct seed for `dataset-385/`; `dataset-pilot-20-deepseek/` is thin (`engine` only) — do not seed from it. Copy `manifest.json` + `personas.jsonl` + `dossiers/u_*.html/json`, then set `target_users=385` before re-running.
+15. **Artifact staleness after template revisions** — when pulse/dataset/survey templates revise, every `*.html` on disk must be re-audited case-insensitively (see `references/artifact-lifecycle.md`). Don't confuse `dataset-pilot-20-deepseek/` (thin, needs `--reindex-only`) with the canonical `dataset-pilot-20/` (enriched).
+16. **Reasoning response without final JSON** — preserve the raw response as analyst notes, then run a constrained formatting pass with a larger output budget and balanced-brace parsing. Do not discard completed reasoning or pretend a partial response is structured output.
+17. **Scalar rendered as a character list** — validate/coerce model field types before rendering (`str` → one-item list). Programmatic JSON validity does not catch this; visual QA and DOM list-count checks do. See `references/collective-profile.md`.
 
 ## Related
 
 - Data source: `arctic-shift` skill (`~/.hermes/skills/research/arctic-shift/SKILL.md`) + `https://arctic-shift.photon-reddit.com`
 - Design systems: `Design-md collection/DESIGN-Monocle.md`, `DESIGN-Notion.md` + `example html/hermes-cost-forecast-*.html`
-- Template: `UNIVERSAL COMMUNICATION-STYLE SYNTHESIS TEMPLATE (V3.3 — Seven-Signal Integrated).txt`
-- References in this skill: `references/api.md`, `references/template-v33.md`, `references/mono-notion-tokens.md`
+- Templates: `templates/AlanDarkArts-v4-thinking.md` (individual/deep) · `templates/AlanDarkArts-v4-flash.md` (batch/compact) · legacy `UNIVERSAL COMMUNICATION-STYLE SYNTHESIS TEMPLATE (V3.3 — Seven-Signal Integrated).txt`
+- References in this skill: `references/api.md`, `references/template-v33.md`, `references/mono-notion-tokens.md`, `references/pulse-analyze.md`, `references/dataset-control-panel.md`, `references/survey-agnostic.md`, `references/artifact-lifecycle.md`, `references/longitudinal-alanism.md`, `references/collective-profile.md`, `references/macos-env-quirks-2026-08-16.md`, `references/adversarial-review-v4-flash.md`
 - Templates in this skill: `templates/pulse-monocle.html`, `templates/persona-notion.html`
+
+## Artifact lifecycle (2026-08-16)
+
+When templates revise (pulse 1.2→1.4), existing `*.html` artifacts go stale. Audit case-insensitively (`HERMES`/`MONOCLE`, `EXECUTIVE BRIEFING` lower) across `dataset-*/index.html`, `pulse*.html`, `survey-simulation*/report.html`, plus `repo/examples/`. Fix: `--reindex-only --no-archetype-llm` reindexes legacy dataset indexes (18k→140k); `render_report(..., meta)` re-renders legacy surveys without LLM; `MONOCLE→HERMES` + archived warning covers persistent 422 (homeschool 2026-08-16). Details: `references/artifact-lifecycle.md`. Hygiene: `dataset-pilot-20/` (enriched) is canonical seed, not `dataset-pilot-20-deepseek/` (thin).
+
+## Longitudinal — single-author 10-year (2026-08-16)
+
+`u/alanism` 2016–2026, 460 comments (12×month-bucketed `author=alanism&after=&before=`; 422 months skipped → 20/22/18 thin 2016–18, 50/year 2019–26 evenly-spaced). For deep history don't paginate by cursor — it stalls after ~200 — bucket by month/year. Per-year V3.3 LLM synthesis (prompt-cache `deepseek-v4-flash`, 37–102s each, checkpoint-resume on `dossiers/*.json`). `index.html` (68k) is HERMES longitudinal: Vega-Lite engine + Big Five lines plus inline SVG fallback, leanings verbatim, 11 year cards, 11 dossiers. Details: `references/longitudinal-alanism.md` + `/tmp/alanism_timeline.py`. Pitfall: `after=lo before=hi` (not swapped); `Path.home()` for `Documents Vibe Code` spaces inside `terminal(background=true)`.

@@ -28,12 +28,41 @@ know think make going come take back much dont im know going think want need loo
 SENT_POS = set("love great amazing awesome excellent fantastic wonderful best good nice cool fun happy glad win winning love loved recommend thanks thank helpful useful brilliant perfect love love".split())
 SENT_NEG = set("hate bad terrible awful worst horrible sucks hate hated useless worst trash garbage scam fake toxic hate angry frustrated annoyed disappointed worst".split())
 
-def api_get(path: str, params: dict, timeout=30) -> dict:
+def api_get(path: str, params: dict, timeout=30, retries=4, backoff=8) -> dict:
+    import time as _time
     qs = urllib.parse.urlencode({k:v for k,v in params.items() if v not in (None,"")})
     url = f"{API}{path}?{qs}" if qs else f"{API}{path}"
-    req = urllib.request.Request(url, headers={"User-Agent":"reddit-intel/1.0"})
-    with urllib.request.urlopen(req, timeout=timeout) as resp:
-        return json.loads(resp.read().decode())
+    last_err = None
+    for attempt in range(retries + 1):
+        try:
+            req = urllib.request.Request(url, headers={"User-Agent":"reddit-intel/1.0"})
+            with urllib.request.urlopen(req, timeout=timeout) as resp:
+                return json.loads(resp.read().decode())
+        except urllib.error.HTTPError as e:
+            body = b""
+            try: body = e.read()
+            except: pass
+            txt_err = ""
+            try: txt_err = json.loads(body.decode()).get("error","") if body else str(e)
+            except: txt_err = body.decode()[:200] if body else str(e)
+            last_err = e
+            # Retry on transient server errors (422 Timeout, 500, 502, 429)
+            transient = e.code in (422, 429, 500, 502, 503) or "Timeout" in txt_err or "Internal server" in txt_err
+            if transient and attempt < retries:
+                wait = backoff * (2 ** attempt)
+                print(f"[api_get] {path} {e.code} {txt_err[:120]} — retry {attempt+1}/{retries} in {wait}s", file=sys.stderr)
+                _time.sleep(wait)
+                continue
+            raise
+        except Exception as e:
+            last_err = e
+            if attempt < retries:
+                wait = backoff * (2 ** attempt)
+                print(f"[api_get] {path} {e} — retry {attempt+1}/{retries} in {wait}s", file=sys.stderr)
+                _time.sleep(wait)
+                continue
+            raise
+    raise last_err
 
 def fetch_posts(subreddit: str, limit=100, sort="desc", after=None, before=None) -> list:
     params={"subreddit":subreddit,"limit":min(limit,100),"sort":sort,"meta-app":"reddit-intel"}
@@ -81,22 +110,60 @@ def fetch_posts_paginated(subreddit, total=25, sort="desc") -> list:
     return out[:total]
 
 def discover_authors(subreddit, target=100) -> list:
-    """Discover unique authors from recent comments in subreddit."""
+    """Discover unique authors from recent comments in subreddit. Retries + fallback to posts."""
+    import time as _time
     seen=set(); authors=[]
     after=None
+    tries_without_progress=0
     while len(authors) < target:
-        batch=fetch_comments(subreddit=subreddit, limit=100, sort="desc", after=after)
-        if not batch: break
+        batch=None
+        try:
+            batch=fetch_comments(subreddit=subreddit, limit=100, sort="desc", after=after)
+        except Exception as e:
+            print(f"[discover] comments search failed: {e} — trying posts fallback", file=sys.stderr)
+            try:
+                # Fallback: discover via posts (authors of posts)
+                posts=fetch_posts(subreddit=subreddit, limit=50, sort="desc", after=after)
+                for _p in posts:
+                    a=_p.get("author","")
+                    if not a or a in ("[deleted]","[removed]") or a.lower().startswith("automod"): continue
+                    if a not in seen:
+                        seen.add(a); authors.append(a)
+                        if len(authors) >= target: break
+                if posts and len(authors) < target:
+                    last=posts[-1].get("created_utc")
+                    if last: after=str(int(last*1000))
+                    else: after=None
+                    _time.sleep(2)
+                    continue
+            except Exception as e2:
+                print(f"[discover] posts fallback also failed: {e2}", file=sys.stderr)
+            _time.sleep(4)
+            tries_without_progress+=1
+            if tries_without_progress>=3:
+                print(f"[discover] giving up after 3 failures, returning {len(authors)} authors", file=sys.stderr)
+                break
+            continue
+        if not batch:
+            break
+        found_before=len(authors)
         for c in batch:
             a=c.get("author","")
             if not a or a in ("[deleted]","[removed]") or a.lower().startswith("automod"): continue
             if a not in seen:
                 seen.add(a); authors.append(a)
                 if len(authors) >= target: break
+        if len(authors)==found_before:
+            tries_without_progress+=1
+            if tries_without_progress>=4:
+                break
+        else:
+            tries_without_progress=0
         last=batch[-1].get("created_utc")
         if last: after=str(int(last*1000))
         else: break
         if len(batch)<5: break
+        _time.sleep(1.2)
     return authors
 
 # Tokens that are artifacts of contraction-splitting ("don't" -> "don", "didn't" -> "didn", etc.) — always drop
@@ -393,6 +460,29 @@ def _llm_provider_and_key(requested_model: str):
     if os.environ.get("DEEPSEEK_API_KEY"):
         return ("deepseek", os.environ["DEEPSEEK_API_KEY"], "https://api.deepseek.com/v1/chat/completions")
     return (None, None, None)
+
+TEMPLATE_DIR = Path(__file__).resolve().parent.parent / "templates"
+
+TEMPLATE_ALIASES = {
+    "v33": None,  # legacy embedded V3.3 (caller-provided default)
+    "v4-thinking": "AlanDarkArts-v4-thinking.md",
+    "v4-flash": "AlanDarkArts-v4-flash.md",
+}
+
+
+def load_template(name: str, default: str = "") -> str:
+    """Resolve a synthesis template. v33 returns the caller's embedded default.
+    v4-* load templates/<file>.md to use as the SYSTEM prompt (cache-stable prefix).
+    Keep the returned string byte-identical across a batch so the prompt cache hits."""
+    if not name or name == "v33":
+        return default
+    fname = TEMPLATE_ALIASES.get(name) or f"{name}.md"
+    p = TEMPLATE_DIR / fname
+    if p.exists():
+        return p.read_text(encoding="utf-8")
+    print(f"[template] '{name}' not found at {p} — falling back to v33", file=sys.stderr)
+    return default
+
 
 def try_llm(prompt: str, model="deepseek-v4-flash", max_tokens=None, system_prompt: str = None) -> str:
     """Optional LLM synthesis — supports DeepSeek direct, OpenRouter, and OpenAI. Prompt-cache friendly.

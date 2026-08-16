@@ -15,7 +15,7 @@ from datetime import datetime, timezone
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 sys.path.insert(0, str(SCRIPT_DIR))
-from analyze import fetch_comments_paginated, fetch_posts, fetch_posts_paginated, tokenize, try_llm, STOPWORDS, _load_env_file
+from analyze import fetch_comments_paginated, fetch_posts, fetch_posts_paginated, tokenize, try_llm, STOPWORDS, _load_env_file, load_template
 
 CACHE_DIR = Path.home() / ".hermes" / "cache" / "reddit-intel" / "personas"
 CACHE_TTL_DAYS = 7
@@ -332,6 +332,7 @@ def main():
     ap.add_argument("--out", required=True, help="output HTML path")
     ap.add_argument("--no-cache", action="store_true")
     ap.add_argument("--no-llm", action="store_true", help="force heuristic even if key present")
+    ap.add_argument("--template", default="v33", choices=["v33","v4-thinking","v4-flash"], help="synthesis template: v33 (legacy) · v4-thinking (individual deep) · v4-flash (batch microcard)")
     args=ap.parse_args()
 
     _load_env_file()
@@ -378,7 +379,7 @@ def main():
         print(f"[persona] LLM synthesis with {args.model} …", file=sys.stderr)
         # Prompt-cache: system=full V3.3 template (stable prefix), user=corpus (variable). DeepSeek caches system automatically.
         # PROMPT_V33 has {corpus} placeholder — extract template part as system
-        _system = PROMPT_V33.replace("{corpus}", "[CORPUS INSERTED IN USER MESSAGE]")
+        _system = load_template(args.template, PROMPT_V33).replace("{corpus}", "[CORPUS INSERTED IN USER MESSAGE]")
         _user = f"CORPUS (up to 500 comments, truncated):\n---\n{corpus}\n---\n\nTASK: Return ONLY the single JSON object with the exact shape described in the system prompt. No prose outside JSON."
         raw=try_llm(_user, model=args.model, system_prompt=_system)
         if raw:
@@ -452,11 +453,14 @@ def main():
             "engine_metrics": None,
             "quotes": [{"text": (comments[0].get("body","") or "")[:160], "source": f"r/{comments[0].get('subreddit','?')}", "signal": "heuristic sample"}] if comments else [],
             "arguments": None,
-            "one_line": f"Heuristic dossier for u/{author} — {n} comments.",
+            "one_line": f"Heuristic dossier for u/{args.author} — {len(comments)} comments.",
             "model": "heuristic",
             "comments": len(comments),
         }
     if rubric_payload:
+        if args.template.startswith("v4") and synthesis:
+            # v4 schema — persist the raw synthesis verbatim (microcard / dossier) for downstream v4 tooling
+            rubric_payload={"author": args.author, "_template": args.template, **synthesis, "model": args.model, "comments": len(comments)}
         sidecar=out.with_suffix(".json")
         sidecar.write_text(json.dumps(rubric_payload, ensure_ascii=False, indent=2))
         print(f"[persona] rubric → {sidecar}", file=sys.stderr)
