@@ -3,6 +3,8 @@
 **Understand any online community by reading what its members actually say.**
 
 > 📘 **New to the tool? Read the [Product Documentation & Playbook](docs/PRODUCT_PLAYBOOK.md)** — it explains the problem we solve, the value proposition, every use case, and a step-by-step playbook from first report to full research panel.
+>
+> 📕 **Prefer a designed field manual?** Grab the [Redditor Synthesizer Manual (PDF)](docs/manual/Redditor-Synthesizer-Manual.pdf) — a 16-page magazine-format version of the playbook, ready to print or share.
 
 This tool takes a Reddit community (like r/parenting or r/stocks), reads thousands
 of real comments, and turns them into clear, easy-to-read reports you can open in
